@@ -23,7 +23,7 @@ function App() {
     englishSymbols: true,
     englishSpecial: true,
     englishLigatures: true,
-    englishIcons: false,
+    englishIcons: true,
   })
 
   const [fontName, setFontName] = useState("")
@@ -149,35 +149,24 @@ function App() {
                 />
 
                 {/* Action Buttons */}
-                <div className="flex justify-center mt-6 space-x-4">
+                <div className="flex justify-center mt-6">
                   <Button
                     onClick={handleMerge}
                     disabled={!canMerge}
                     size="lg"
-                    className="min-w-[160px]"
+                    className="min-w-[200px] h-12 text-lg"
                   >
                     {fontState.isLoading ? (
                       <>
-                        <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                        <Loader2 className="mr-2 w-5 h-5 animate-spin" />
                         합치는 중...
                       </>
                     ) : (
                       <>
-                        <Merge className="mr-2 w-4 h-4" />
+                        <Merge className="mr-2 w-5 h-5" />
                         폰트 합치기
                       </>
                     )}
-                  </Button>
-
-                  <Button
-                    onClick={handleDownload}
-                    disabled={!canDownload}
-                    variant="secondary"
-                    size="lg"
-                    className="min-w-[160px]"
-                  >
-                    <Download className="mr-2 w-4 h-4" />
-                    다운로드
                   </Button>
                 </div>
               </div>
@@ -196,6 +185,19 @@ function App() {
                   previewText={previewText}
                   onPreviewTextChange={setPreviewText}
                 />
+
+                {/* Download Button */}
+                <div className="flex justify-center mt-6">
+                  <Button
+                    onClick={handleDownload}
+                    disabled={!canDownload}
+                    size="lg"
+                    className="min-w-[200px] h-12 text-lg"
+                  >
+                    <Download className="mr-2 w-5 h-5" />
+                    다운로드
+                  </Button>
+                </div>
               </div>
             </div>
           )}

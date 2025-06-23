@@ -40,8 +40,16 @@ const MergeOptions: React.FC<MergeOptionsProps> = ({
     { key: "englishNumbers" as const, label: "영문 숫자 (0-9)", description: "아라비아 숫자" },
     { key: "englishSymbols" as const, label: "영문 기호", description: "기본 ASCII 기호" },
     { key: "englishSpecial" as const, label: "특수문자", description: "확장 ASCII, 유니코드 기호" },
-    { key: "englishLigatures" as const, label: "합자 (Ligatures)", description: "코딩용 합자 (=>, !=, == 등)" },
-    { key: "englishIcons" as const, label: "아이콘 (NerdFonts)", description: "개발자 아이콘 및 심볼" },
+    {
+      key: "englishLigatures" as const,
+      label: "합자 (Ligatures)",
+      description: "코딩용 합자 (=>, !=, == 등)",
+    },
+    {
+      key: "englishIcons" as const,
+      label: "아이콘 (NerdFonts)",
+      description: "개발자 아이콘 및 심볼",
+    },
   ]
 
   return (

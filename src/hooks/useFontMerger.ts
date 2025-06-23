@@ -35,10 +35,21 @@ export const useFontMerger = () => {
         const arrayBuffer = await file.arrayBuffer()
         const font = parse(arrayBuffer)
 
+        // 기본 폰트 이름 추출
+        let baseFontName = font.names.fontFamily?.en || file.name.replace(/\.[^/.]+$/, "")
+
+        // 현재 상태에서 이미 로드된 폰트와 이름이 같은지 확인
+        const otherFont = type === "korean" ? fontState.englishFont : fontState.koreanFont
+        if (otherFont && otherFont.font.names.fontFamily?.en === baseFontName) {
+          // 중복된 폰트 이름이 발견되면 접미사 추가
+          baseFontName = `${baseFontName}-${type === "korean" ? "Korean" : "English"}`
+          setError(`중복된 폰트 이름이 감지되어 "${baseFontName}"로 변경되었습니다.`)
+        }
+
         const fontInfo: FontInfo = {
           file,
           font,
-          name: font.names.fontFamily?.en || file.name,
+          name: baseFontName,
           size: formatFileSize(file.size),
         }
 
@@ -65,7 +76,7 @@ export const useFontMerger = () => {
         )
       }
     },
-    [setError, setSuccess, formatFileSize]
+    [setError, setSuccess, formatFileSize, fontState.koreanFont, fontState.englishFont]
   )
 
   const addGlyphsToMap = useCallback(
