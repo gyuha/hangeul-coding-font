@@ -289,6 +289,25 @@ export const useFontMerger = () => {
                   fontState.englishFont?.font.descender || -200
                 ),
                 glyphs: glyphsArray,
+                // 추가 메타데이터로 시스템 인식 개선
+                names: {
+                  fontFamily: { en: fontName },
+                  fontSubfamily: { en: "Regular" },
+                  fullName: { en: fontName },
+                  postScriptName: { en: fontName.replace(/\s/g, "") },
+                  version: { en: "1.0" },
+                  description: { en: "Merged Korean-English Coding Font" },
+                  designer: { en: "Font Merger" },
+                  designerURL: { en: "" },
+                  manufacturer: { en: "Font Merger" },
+                  manufacturerURL: { en: "" },
+                  license: { en: "Custom" },
+                  licenseURL: { en: "" },
+                  preferredFamily: { en: fontName },
+                  preferredSubfamily: { en: "Regular" },
+                  compatibleFullName: { en: fontName },
+                  sampleText: { en: "Sample Text 샘플 텍스트" }
+                }
               })
               return tempFont.toArrayBuffer()
             } catch (error) {
