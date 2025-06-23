@@ -1,16 +1,17 @@
-import React, { useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Upload, FileText } from 'lucide-react';
-import type { FontInfo } from '../types/font';
-import { cn } from '../lib/utils';
+import { FileText, Upload } from "lucide-react"
+import type React from "react"
+import { useCallback } from "react"
+import { cn } from "../lib/utils"
+import type { FontInfo } from "../types/font"
+import { Button } from "./ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 
 interface FontUploaderProps {
-  title: string;
-  description: string;
-  fontInfo: FontInfo | null;
-  onFontUpload: (file: File) => void;
-  acceptedTypes?: string;
+  title: string
+  description: string
+  fontInfo: FontInfo | null
+  onFontUpload: (file: File) => void
+  acceptedTypes?: string
 }
 
 const FontUploader: React.FC<FontUploaderProps> = ({
@@ -18,27 +19,32 @@ const FontUploader: React.FC<FontUploaderProps> = ({
   description,
   fontInfo,
   onFontUpload,
-  acceptedTypes = ".ttf,.otf,.woff,.woff2"
+  acceptedTypes = ".ttf,.otf,.woff,.woff2",
 }) => {
-  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      onFontUpload(file);
-    }
-  }, [onFontUpload]);
+  const handleFileSelect = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0]
+      if (file) {
+        onFontUpload(file)
+      }
+    },
+    [onFontUpload]
+  )
 
-  const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    const file = event.dataTransfer.files[0];
-    if (file) {
-      onFontUpload(file);
-    }
-  }, [onFontUpload]);
+  const handleDrop = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault()
+      const file = event.dataTransfer.files[0]
+      if (file) {
+        onFontUpload(file)
+      }
+    },
+    [onFontUpload]
+  )
 
   const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-  }, []);
-
+    event.preventDefault()
+  }, [])
 
   return (
     <Card className="w-full">
@@ -81,16 +87,13 @@ const FontUploader: React.FC<FontUploaderProps> = ({
                 <p className="text-xs text-gray-500">{fontInfo.size}</p>
               </div>
             </div>
-            
+
             <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
               <h4 className="text-sm font-medium mb-2">미리보기</h4>
-              <div 
-                className="text-lg leading-relaxed"
-                style={{ fontFamily: fontInfo.name }}
-              >
-                {title.includes('한글') ? 
-                  "안녕하세요! 한글 코딩 폰트입니다." : 
-                  "Hello! This is English coding font."}
+              <div className="text-lg leading-relaxed" style={{ fontFamily: fontInfo.name }}>
+                {title.includes("한글")
+                  ? "안녕하세요! 한글 코딩 폰트입니다."
+                  : "Hello! This is English coding font."}
               </div>
             </div>
 
@@ -113,7 +116,7 @@ const FontUploader: React.FC<FontUploaderProps> = ({
         )}
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
-export default FontUploader;
+export default FontUploader

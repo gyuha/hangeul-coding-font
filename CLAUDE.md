@@ -6,7 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `npm run dev` - Start development server with host binding
 - `npm run build` - Build for production (runs TypeScript compilation first)  
-- `npm run lint` - Run ESLint for code quality checks
+- `npm run lint` - Run Biome linter for code quality checks
+- `npm run lint:fix` - Run Biome linter and fix auto-fixable issues
+- `npm run format` - Check code formatting with Biome
+- `npm run format:fix` - Format code with Biome
+- `npm run check` - Run both linting and formatting checks with Biome
+- `npm run check:fix` - Run Biome check and fix all auto-fixable issues
 - `npm run preview` - Preview production build locally
 
 ## Project Architecture
