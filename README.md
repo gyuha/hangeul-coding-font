@@ -1,54 +1,83 @@
-# React + TypeScript + Vite
+# 한글 코딩 폰트 병합기
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+한글 폰트와 영문 폰트를 병합하여 코딩에 최적화된 한글 폰트를 만들어주는 웹 애플리케이션입니다.
 
-Currently, two official plugins are available:
+![화면 스샷](images/screen-short.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ 주요 기능
 
-## Expanding the ESLint configuration
+- **간편한 폰트 업로드**: 드래그 앤 드롭으로 TTF, OTF, WOFF 파일을 쉽게 업로드
+- **실시간 미리보기**: 병합된 폰트를 실시간으로 확인하며 조정 가능
+- **선택적 문자 병합**: 필요한 문자 범위만 선택하여 병합
+- **다크모드 지원**: 밝은 테마와 어두운 테마 자동 감지
+- **코드 편집기**: 실제 코딩 환경에서의 폰트 모습을 확인
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 사용 방법
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+1. **폰트 업로드**
+   - 한글 폰트 파일을 첫 번째 영역에 드래그하거나 클릭하여 업로드
+   - 영문 폰트 파일을 두 번째 영역에 드래그하거나 클릭하여 업로드
+
+2. **병합 옵션 설정**
+   - 한글 폰트에서 포함할 문자 범위 선택:
+     - 한글 음절 (가-힣)
+     - 한글 자모 (ㄱ-ㅣ)
+   - 영문 폰트에서 포함할 문자 범위 선택:
+     - 영문 대소문자 (A-Z, a-z)
+     - 숫자 (0-9)
+     - 기호 및 특수문자
+     - 확장 문자
+
+3. **실시간 미리보기**
+   - 샘플 텍스트로 병합된 폰트 확인
+   - 코드 편집기에서 실제 코딩 환경 테스트
+   - 다크모드/라이트모드에서 폰트 가독성 확인
+
+4. **폰트 다운로드**
+   - 설정이 완료되면 '폰트 병합 및 다운로드' 버튼 클릭
+   - TTF 형식으로 병합된 폰트 파일 다운로드
+
+## 💡 사용 팁
+
+- **폰트 선택**: 한글 폰트는 가독성이 좋은 고딕체, 영문 폰트는 코딩에 최적화된 모노스페이스 폰트를 추천
+- **문자 범위**: 필요한 문자만 선택하여 폰트 파일 크기를 최적화
+- **미리보기**: 다양한 샘플 텍스트로 테스트하여 코딩 환경에서의 가독성 확인
+
+## 📋 지원 파일 형식
+
+- **입력**: TTF, OTF, WOFF
+- **출력**: TTF
+
+## 🛠 기술 스택
+
+- React + TypeScript
+- Vite
+- OpenType.js (폰트 처리)
+- shadcn/ui + Tailwind CSS (UI)
+- Biome (코드 품질)
+
+## 🖥 개발 환경 설정
+
+이 프로젝트를 로컬에서 실행하려면:
+
+```bash
+# 의존성 설치
+pnpm install
+
+# 개발 서버 시작
+pnpm run dev
+
+# 빌드
+pnpm run build
+
+# 코드 검사
+pnpm run lint
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 📝 라이선스
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+이 프로젝트는 개인 및 상업적 용도로 자유롭게 사용할 수 있습니다.
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+## 🤝 기여하기
+
+버그 리포트나 기능 제안은 GitHub Issues를 통해 해주세요.

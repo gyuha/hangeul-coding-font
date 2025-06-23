@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import DownloadOverlay from "./components/DownloadOverlay"
 import FontPreview from "./components/FontPreview"
 import FontUploader from "./components/FontUploader"
+import GitHubCorner from "./components/GitHubCorner"
 import LoadingOverlay from "./components/LoadingOverlay"
 import MergeOptions from "./components/MergeOptions"
 import { Alert, AlertDescription } from "./components/ui/alert"
@@ -65,6 +66,7 @@ function App() {
 
   return (
     <>
+      <GitHubCorner url="https://github.com/gyuha/hangeul-coding-font" />
       {isDownloading && <DownloadOverlay isVisible={isDownloading} />}
       <LoadingOverlay
         isVisible={fontState.isLoading && !isDownloading}
