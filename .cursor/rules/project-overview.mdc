@@ -1,0 +1,29 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 한글 코딩 폰트 프로젝트 개요
+
+## 프로젝트 목적
+이 프로젝트는 한글 폰트와 영문 폰트를 합쳐서 완벽한 코딩 폰트를 생성하는 웹 애플리케이션입니다. 사용자는 각 폰트에서 필요한 문자를 선택하여 나만의 맞춤형 코딩 폰트를 만들 수 있습니다.
+
+## 기술 스택
+- **프론트엔드**: React 19 + TypeScript + Vite
+- **스타일링**: Tailwind CSS + shadcn/ui 컴포넌트
+- **폰트 처리**: opentype.js 라이브러리
+- **개발 도구**: ESLint, PostCSS, Autoprefixer
+
+## 주요 기능
+1. 한글/영문 폰트 파일 업로드 (TTF, OTF, WOFF, WOFF2 지원)
+2. 문자 범위별 선택적 병합 (한글, 영문, 숫자, 특수문자 등)
+3. 실시간 폰트 미리보기
+4. 병합된 폰트 TTF 형식으로 다운로드
+
+## 프로젝트 구조
+- 메인 앱: [src/App.tsx](mdc:src/App.tsx)
+- 폰트 업로드 컴포넌트: [src/components/FontUploader.tsx](mdc:src/components/FontUploader.tsx)
+- 병합 옵션 컴포넌트: [src/components/MergeOptions.tsx](mdc:src/components/MergeOptions.tsx)
+- 폰트 미리보기 컴포넌트: [src/components/FontPreview.tsx](mdc:src/components/FontPreview.tsx)
+- 폰트 병합 로직: [src/hooks/useFontMerger.ts](mdc:src/hooks/useFontMerger.ts)
+- 타입 정의: [src/types/font.ts](mdc:src/types/font.ts)

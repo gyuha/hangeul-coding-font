@@ -1,0 +1,111 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 배포 및 빌드 설정
+
+## 개발 환경
+
+### 패키지 매니저
+- **pnpm** 사용 (pnpm-lock.yaml 존재)
+- 빠른 설치 및 디스크 공간 효율성
+
+### 개발 서버
+```bash
+pnpm dev
+```
+- Vite 개발 서버 실행
+- 호스트 바인딩: `--host` 플래그로 네트워크 접근 가능
+- HMR (Hot Module Replacement) 지원
+
+## 빌드 프로세스
+
+### 프로덕션 빌드
+```bash
+pnpm build
+```
+- TypeScript 컴파일: `tsc -b`
+- Vite 빌드: `vite build`
+- 최적화된 정적 파일 생성
+
+### 빌드 설정 파일
+- **Vite 설정**: [vite.config.ts](mdc:vite.config.ts)
+- **TypeScript 설정**: [tsconfig.json](mdc:tsconfig.json), [tsconfig.app.json](mdc:tsconfig.app.json)
+- **PostCSS 설정**: [postcss.config.js](mdc:postcss.config.js)
+- **Tailwind 설정**: [tailwind.config.js](mdc:tailwind.config.js)
+
+## 코드 품질
+
+### 린팅
+```bash
+pnpm lint
+```
+- **ESLint 설정**: [eslint.config.js](mdc:eslint.config.js)
+- TypeScript ESLint 규칙 적용
+- React Hooks 규칙 검사
+
+### 타입 체크
+- TypeScript 컴파일러로 타입 검증
+- 빌드 시 자동 타입 체크
+- 엄격한 타입 검사 활성화
+
+## 정적 파일
+
+### 공개 디렉토리
+- **위치**: [public/](mdc:public/)
+- **용도**: 정적 자산 (이미지, 아이콘 등)
+- **접근**: `/` 경로로 직접 접근 가능
+
+### 빌드 출력
+- **위치**: `dist/` (빌드 후 생성)
+- **내용**: 최적화된 HTML, CSS, JS 파일
+- **특징**: 코드 분할 및 압축 적용
+
+## 환경 변수
+
+### 개발 환경
+- `.env.local` 파일 사용 (필요시)
+- Vite 환경 변수 접두사: `VITE_`
+- 클라이언트 사이드에서 접근 가능
+
+### 프로덕션 환경
+- 빌드 시 환경 변수 주입
+- 런타임 설정 분리
+- 보안 민감 정보 제외
+
+## 배포 옵션
+
+### 정적 호스팅
+- Netlify, Vercel, GitHub Pages 등
+- SPA 라우팅 설정 필요
+- CDN 캐싱 활용
+
+### 서버 배포
+- Nginx, Apache 설정
+- gzip 압축 활성화
+- 브라우저 캐싱 설정
+
+## 성능 최적화
+
+### 번들 최적화
+- 코드 분할 (Code Splitting)
+- Tree Shaking
+- 압축 및 최소화
+
+### 폰트 최적화
+- 폰트 파일 압축
+- 웹폰트 형식 최적화
+- 폰트 로딩 전략
+
+## 모니터링
+
+### 에러 추적
+- 클라이언트 사이드 에러 로깅
+- 사용자 행동 분석
+- 성능 메트릭 수집
+
+### 로그 관리
+- 개발 환경: 콘솔 로그
+- 프로덕션: 구조화된 로그
+- 민감 정보 필터링

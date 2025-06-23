@@ -1,0 +1,77 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 폰트 처리 가이드
+
+## opentype.js 라이브러리 활용
+
+### 주요 기능
+- 폰트 파일 파싱 및 로딩
+- 문자별 글리프 정보 추출
+- 폰트 병합 및 생성
+- TTF 형식으로 내보내기
+
+### 핵심 파일
+**폰트 병합 로직**: [src/hooks/useFontMerger.ts](mdc:src/hooks/useFontMerger.ts)
+**타입 정의**: [src/types/font.ts](mdc:src/types/font.ts)
+
+## 폰트 처리 단계
+
+### 1. 폰트 로딩
+```typescript
+// opentype.js를 사용한 폰트 파싱
+const font = await opentype.parse(file);
+```
+
+### 2. 문자 범위 정의
+- **한글**: U+AC00-U+D7AF (한글 음절)
+- **한글 자모**: U+1100-U+11FF (한글 자모)
+- **영문**: U+0041-U+005A, U+0061-U+007A (A-Z, a-z)
+- **숫자**: U+0030-U+0039 (0-9)
+- **특수문자**: U+0020-U+007F (기본 라틴)
+
+### 3. 폰트 병합 과정
+1. 기준 폰트 선택 (한글 폰트 또는 영문 폰트)
+2. 선택된 문자 범위에 따라 글리프 복사
+3. 새로운 폰트 객체 생성
+4. TTF 형식으로 인코딩
+
+## 지원 폰트 형식
+- **입력**: TTF, OTF, WOFF, WOFF2
+- **출력**: TTF
+
+## 에러 처리
+- 파일 형식 검증
+- 폰트 파싱 실패 처리
+- 메모리 부족 상황 대응
+- 진행률 표시 및 취소 기능
+
+## 성능 최적화
+- Web Workers 사용 고려 (대용량 폰트 처리)
+- 진행률 표시로 사용자 경험 개선
+- 메모리 효율적인 폰트 처리
+
+## 폰트 정보 추출
+```typescript
+interface FontInfo {
+  file: File;
+  font: Font;
+  name: string;    // 폰트 이름
+  size: string;    // 파일 크기
+}
+```
+
+## 병합 옵션
+```typescript
+interface MergeOptions {
+  koreanHangul: boolean;    // 한글 음절
+  koreanSymbols: boolean;   // 한글 특수문자
+  koreanNumbers: boolean;   // 한글 숫자
+  englishLetters: boolean;  // 영문 알파벳
+  englishNumbers: boolean;  // 영문 숫자
+  englishSymbols: boolean;  // 영문 특수문자
+  englishSpecial: boolean;  // 기타 특수문자
+}
+```
