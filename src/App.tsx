@@ -24,7 +24,6 @@ function App() {
   })
 
   const [fontName, setFontName] = useState("")
-  const [appliedFontName, setAppliedFontName] = useState("")
   const [isFontNameEdited, setIsFontNameEdited] = useState(false)
   const [previewText, setPreviewText] = useState("")
   const [isDownloading, setIsDownloading] = useState(false)
@@ -35,17 +34,16 @@ function App() {
   useEffect(() => {
     if (fontState.englishFont && !isFontNameEdited) {
       setFontName(fontState.englishFont.name)
-      setAppliedFontName(fontState.englishFont.name)
     }
   }, [fontState.englishFont, isFontNameEdited])
 
   const handleFontNameChange = (name: string) => {
-    setAppliedFontName(name)
+    setFontName(name)
     setIsFontNameEdited(true)
   }
 
   const handleMerge = () => {
-    mergefonts(mergeOptions, appliedFontName)
+    mergefonts(mergeOptions, fontName)
   }
 
   const downloadFontAsync = (fontName: string) => {
@@ -59,7 +57,7 @@ function App() {
 
   const handleDownload = async () => {
     setIsDownloading(true)
-    await downloadFontAsync(appliedFontName)
+    await downloadFontAsync(fontName)
     setTimeout(() => setIsDownloading(false), 800)
   }
 
@@ -74,9 +72,9 @@ function App() {
         message="폰트 합치는 중..."
       />
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="container px-4 py-8 mx-auto max-w-full">
+        <div className="container px-4 py-8 mx-auto max-w-5xl">
           {/* Header */}
-          <div className="mb-8 text-center">
+          <div className="mb-8 max-w-lg text-center">
             <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">
               한글 코딩 폰트 합치기
             </h1>
@@ -143,7 +141,6 @@ function App() {
                   onOptionsChange={setMergeOptions}
                   fontName={fontName}
                   onFontNameChange={handleFontNameChange}
-                  appliedFontName={appliedFontName}
                 />
 
                 {/* Action Buttons */}
@@ -190,7 +187,7 @@ function App() {
                   3. 미리보기
                 </h2>
                 <FontPreview
-                  fontName={appliedFontName}
+                  fontName={fontName}
                   previewText={previewText}
                   onPreviewTextChange={setPreviewText}
                 />

@@ -1,7 +1,6 @@
 import type React from "react"
-import { useEffect, useId, useState } from "react"
+import { useId } from "react"
 import type { MergeOptions as MergeOptionsType } from "../types/font"
-import { Button } from "./ui/button"
 import { Checkbox } from "./ui/checkbox"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
@@ -11,7 +10,6 @@ interface MergeOptionsProps {
   onOptionsChange: (options: MergeOptionsType) => void
   fontName: string
   onFontNameChange: (name: string) => void
-  appliedFontName: string
 }
 
 const MergeOptions: React.FC<MergeOptionsProps> = ({
@@ -19,19 +17,8 @@ const MergeOptions: React.FC<MergeOptionsProps> = ({
   onOptionsChange,
   fontName,
   onFontNameChange,
-  appliedFontName,
 }) => {
   const fontNameId = useId()
-  const [tempFontName, setTempFontName] = useState(fontName)
-
-  // fontName이 변경되면 tempFontName도 업데이트
-  useEffect(() => {
-    setTempFontName(fontName)
-  }, [fontName])
-
-  const handleApplyFontName = () => {
-    onFontNameChange(tempFontName)
-  }
 
   const handleOptionChange = (key: keyof MergeOptionsType, checked: boolean) => {
     onOptionsChange({
@@ -110,28 +97,13 @@ const MergeOptions: React.FC<MergeOptionsProps> = ({
           <Label htmlFor={fontNameId} className="text-sm font-medium">
             합쳐진 폰트 이름
           </Label>
-          <div className="flex items-center space-x-2 max-w-md">
-            <Input
-              id={fontNameId}
-              value={tempFontName}
-              onChange={(e) => setTempFontName(e.target.value)}
-              placeholder="폰트 이름을 입력하세요"
-              className="flex-1"
-            />
-            <Button
-              onClick={handleApplyFontName}
-              disabled={tempFontName.trim() === appliedFontName}
-              size="sm"
-              variant="outline"
-            >
-              적용
-            </Button>
-          </div>
-          {appliedFontName && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              현재 적용된 폰트 이름: {appliedFontName}
-            </p>
-          )}
+          <Input
+            id={fontNameId}
+            value={fontName}
+            onChange={(e) => onFontNameChange(e.target.value)}
+            placeholder="폰트 이름을 입력하세요"
+            className="max-w-sm"
+          />
         </div>
       </div>
     </div>
