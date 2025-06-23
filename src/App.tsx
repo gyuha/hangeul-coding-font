@@ -76,7 +76,7 @@ function App() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="container px-4 py-8 mx-auto max-w-5xl">
           {/* Header */}
-          <div className="mb-8 max-w-lg text-center">
+          <div className="mb-8 text-center">
             <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">
               한글 코딩 폰트 합치기
             </h1>
