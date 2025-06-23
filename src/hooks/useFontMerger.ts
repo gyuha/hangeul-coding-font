@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
-import { load } from 'opentype.js';
+import { parse } from 'opentype.js';
 import { Font } from 'opentype.js';
-import { FontInfo, FontState, MergeOptions } from '@/types/font';
+import type { FontInfo, FontState, MergeOptions } from '../types/font';
 
 export const useFontMerger = () => {
   const [fontState, setFontState] = useState<FontState>({
@@ -33,7 +33,7 @@ export const useFontMerger = () => {
   const loadFont = useCallback(async (file: File, type: 'korean' | 'english') => {
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const font = load(arrayBuffer);
+      const font = parse(arrayBuffer);
       
       const fontInfo: FontInfo = {
         file,
@@ -94,8 +94,6 @@ export const useFontMerger = () => {
     try {
       // OpenType.js Font 생성
       const Font = (window as any).opentype.Font;
-      const Glyph = (window as any).opentype.Glyph;
-      const Path = (window as any).opentype.Path;
       
       const font = new Font({
         familyName: fontName,

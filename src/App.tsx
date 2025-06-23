@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from 'react';
+import { Button } from './components/ui/button';
+import { Progress } from './components/ui/progress';
+import { Alert, AlertDescription } from './components/ui/alert';
 import { Loader2, Download, Merge } from 'lucide-react';
-import FontUploader from '@/components/FontUploader';
-import MergeOptions from '@/components/MergeOptions';
-import FontPreview from '@/components/FontPreview';
-import { useFontMerger } from '@/hooks/useFontMerger';
-import { MergeOptions as MergeOptionsType } from '@/types/font';
+import FontUploader from './components/FontUploader';
+import MergeOptions from './components/MergeOptions';
+import FontPreview from './components/FontPreview';
+import { useFontMerger } from './hooks/useFontMerger';
+import type { MergeOptions as MergeOptionsType } from './types/font';
 
 function App() {
   const { fontState, loadFont, mergefonts, downloadFont } = useFontMerger();

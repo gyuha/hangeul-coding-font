@@ -1,9 +1,9 @@
 import React, { useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
 import { Upload, FileText } from 'lucide-react';
-import { FontInfo } from '@/types/font';
-import { cn } from '@/lib/utils';
+import type { FontInfo } from '../types/font';
+import { cn } from '../lib/utils';
 
 interface FontUploaderProps {
   title: string;
@@ -39,11 +39,6 @@ const FontUploader: React.FC<FontUploaderProps> = ({
     event.preventDefault();
   }, []);
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  };
 
   return (
     <Card className="w-full">
