@@ -1,5 +1,5 @@
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "./ui/button"
 import { Textarea } from "./ui/textarea"
 
@@ -15,6 +15,27 @@ const FontPreview: React.FC<FontPreviewProps> = ({
   onPreviewTextChange,
 }) => {
   const [fontSize, setFontSize] = useState(14)
+  const [fontLoaded, setFontLoaded] = useState(false)
+
+  useEffect(() => {
+    const checkFontLoad = async () => {
+      if (fontName) {
+        try {
+          // 폰트가 로드되었는지 확인
+          await document.fonts.load(`16px "${fontName}"`)
+          const fontFaces = Array.from(document.fonts.values())
+          const isFontAvailable = fontFaces.some((font) => font.family === fontName)
+          setFontLoaded(isFontAvailable)
+          console.log(`Font "${fontName}" loaded:`, isFontAvailable)
+        } catch (error) {
+          console.warn("Font load check failed:", error)
+          setFontLoaded(false)
+        }
+      }
+    }
+
+    checkFontLoad()
+  }, [fontName])
 
   const defaultPreviewText = `const message = "안녕하세요! Hello World!";
 function greet(name: string) {
@@ -122,9 +143,17 @@ export const User: React.FC<Props> = ({ name, age }) => {
       </div>
 
       <div className="text-xs text-gray-500 dark:text-gray-400 flex justify-between">
-        <span>현재 폰트: {fontName || "기본 폰트"}</span>
+        <span>
+          현재 폰트: {fontName || "기본 폰트"} {fontLoaded ? "✓" : "⚠️"}
+        </span>
         <span>글자 수: {(previewText || defaultPreviewText).length}</span>
       </div>
+
+      {!fontLoaded && fontName && (
+        <div className="text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded">
+          ⚠️ 폰트가 아직 로드되지 않았습니다. 브라우저 콘솔을 확인해주세요.
+        </div>
+      )}
     </div>
   )
 }

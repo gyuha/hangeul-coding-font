@@ -1,5 +1,5 @@
 import { Download, Loader2, Merge } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import FontPreview from "./components/FontPreview"
 import FontUploader from "./components/FontUploader"
 import MergeOptions from "./components/MergeOptions"
