@@ -124,17 +124,20 @@ export const useFontMerger = () => {
         if (options.koreanHangul) {
           addGlyphsToMap(targetGlyphs, fontState.koreanFont.font, 0xac00, 0xd7af) // 한글 완성형
           setFontState((prev) => ({ ...prev, progress: (++progress / totalSteps) * 100 }))
+          await new Promise((resolve) => setTimeout(resolve, 300)) // 진행 상황을 보여주기 위한 딜레이
         }
 
         if (options.koreanSymbols) {
           addGlyphsToMap(targetGlyphs, fontState.koreanFont.font, 0x3130, 0x318f) // 한글 자모
           addGlyphsToMap(targetGlyphs, fontState.koreanFont.font, 0xa960, 0xa97f) // 한글 자모 확장
           setFontState((prev) => ({ ...prev, progress: (++progress / totalSteps) * 100 }))
+          await new Promise((resolve) => setTimeout(resolve, 200))
         }
 
         if (options.koreanNumbers) {
           addGlyphsToMap(targetGlyphs, fontState.koreanFont.font, 0x1100, 0x11ff) // 한글 자모
           setFontState((prev) => ({ ...prev, progress: (++progress / totalSteps) * 100 }))
+          await new Promise((resolve) => setTimeout(resolve, 200))
         }
 
         // 영문 문자 추가
@@ -142,11 +145,13 @@ export const useFontMerger = () => {
           addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x0041, 0x005a) // A-Z
           addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x0061, 0x007a) // a-z
           setFontState((prev) => ({ ...prev, progress: (++progress / totalSteps) * 100 }))
+          await new Promise((resolve) => setTimeout(resolve, 200))
         }
 
         if (options.englishNumbers) {
           addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x0030, 0x0039) // 0-9
           setFontState((prev) => ({ ...prev, progress: (++progress / totalSteps) * 100 }))
+          await new Promise((resolve) => setTimeout(resolve, 200))
         }
 
         if (options.englishSymbols) {
@@ -155,17 +160,23 @@ export const useFontMerger = () => {
           addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x005b, 0x0060) // [\]^_`
           addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x007b, 0x007e) // {|}~
           setFontState((prev) => ({ ...prev, progress: (++progress / totalSteps) * 100 }))
+          await new Promise((resolve) => setTimeout(resolve, 200))
         }
 
         if (options.englishSpecial) {
           addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x00a0, 0x00ff) // Latin-1 Supplement
           addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x2000, 0x206f) // General Punctuation
           setFontState((prev) => ({ ...prev, progress: (++progress / totalSteps) * 100 }))
+          await new Promise((resolve) => setTimeout(resolve, 200))
         }
 
         // 글리프 배열로 변환
         const glyphsArray = Array.from(targetGlyphs.values())
         console.log(`Prepared ${glyphsArray.length} glyphs for font creation`)
+
+        // 폰트 생성 단계 진행률 업데이트
+        setFontState((prev) => ({ ...prev, progress: 90 }))
+        await new Promise((resolve) => setTimeout(resolve, 500))
 
         // 간단한 방식으로 폰트 생성
         const font = {
@@ -194,12 +205,12 @@ export const useFontMerger = () => {
                 styleName: "Regular",
                 unitsPerEm: baseFont.unitsPerEm,
                 ascender: Math.max(
-                  fontState.koreanFont.font.ascender,
-                  fontState.englishFont.font.ascender
+                  fontState.koreanFont?.font.ascender || 800,
+                  fontState.englishFont?.font.ascender || 800
                 ),
                 descender: Math.min(
-                  fontState.koreanFont.font.descender,
-                  fontState.englishFont.font.descender
+                  fontState.koreanFont?.font.descender || -200,
+                  fontState.englishFont?.font.descender || -200
                 ),
                 glyphs: glyphsArray,
               })
