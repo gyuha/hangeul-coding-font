@@ -17,6 +17,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm run preview` - Preview production build locally
 - `pnpm install` - Install dependencies
 
+## Environment Configuration
+
+The project uses environment variables to configure deployment paths:
+
+- `.env.development` - Development environment (base path: `/`)
+- `.env.production` - Production environment (base path: `/hangeul-coding-font/`)
+- `.env.example` - Example environment file
+
+### Environment Variables
+
+- `VITE_BASE_PATH` - Base path for deployment (e.g., `/`, `/hangeul-coding-font/`)
+
+### Deployment
+
+For different deployment scenarios:
+
+1. **Root domain deployment**: Use `VITE_BASE_PATH=/`
+2. **Subdirectory deployment**: Use `VITE_BASE_PATH=/hangeul-coding-font/`
+3. **Custom path**: Set `VITE_BASE_PATH` to your desired path
+
 ## Project Architecture
 
 This is a React + TypeScript + Vite application for merging Korean and English fonts into a single coding font. The app uses OpenType.js for font manipulation and shadcn/ui components with Tailwind CSS for styling.
