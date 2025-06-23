@@ -45,10 +45,10 @@ const MergeOptions: React.FC<MergeOptionsProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <h4 className="font-medium text-sm mb-4 text-gray-700 dark:text-gray-300">
-            한글 문자 선택
+            영문 문자 선택
           </h4>
           <div className="space-y-3">
-            {koreanOptions.map(({ key, label, description }) => (
+            {englishOptions.map(({ key, label, description }) => (
               <div key={key} className="flex items-start space-x-3">
                 <Checkbox
                   id={key}
@@ -69,10 +69,10 @@ const MergeOptions: React.FC<MergeOptionsProps> = ({
 
         <div>
           <h4 className="font-medium text-sm mb-4 text-gray-700 dark:text-gray-300">
-            영문 문자 선택
+            한글 문자 선택
           </h4>
           <div className="space-y-3">
-            {englishOptions.map(({ key, label, description }) => (
+            {koreanOptions.map(({ key, label, description }) => (
               <div key={key} className="flex items-start space-x-3">
                 <Checkbox
                   id={key}

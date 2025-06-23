@@ -1,5 +1,5 @@
 import { Download, Loader2, Merge } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import FontPreview from "./components/FontPreview"
 import FontUploader from "./components/FontUploader"
 import MergeOptions from "./components/MergeOptions"
@@ -22,11 +22,23 @@ function App() {
     englishSpecial: true,
   })
 
-  const [fontName, setFontName] = useState("한글코딩폰트")
+  const [fontName, setFontName] = useState("")
+  const [isFontNameEdited, setIsFontNameEdited] = useState(false)
   const [previewText, setPreviewText] = useState("")
 
   const canMerge = fontState.koreanFont && fontState.englishFont && !fontState.isLoading
   const canDownload = fontState.mergedFont && !fontState.isLoading
+
+  useEffect(() => {
+    if (fontState.englishFont && !isFontNameEdited) {
+      setFontName(fontState.englishFont.name)
+    }
+  }, [fontState.englishFont, isFontNameEdited])
+
+  const handleFontNameChange = (name: string) => {
+    setFontName(name)
+    setIsFontNameEdited(true)
+  }
 
   const handleMerge = () => {
     mergefonts(mergeOptions, fontName)
@@ -38,10 +50,10 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="container px-4 py-8 mx-auto max-w-full">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">
             한글 코딩 폰트 합치기
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
@@ -51,26 +63,26 @@ function App() {
 
         {/* Error/Success Messages */}
         {fontState.error && (
-          <Alert className="mb-6 border-red-200 bg-red-50 text-red-800">
+          <Alert className="mb-6 text-red-800 bg-red-50 border-red-200">
             <AlertDescription>{fontState.error}</AlertDescription>
           </Alert>
         )}
 
         {fontState.success && (
-          <Alert className="mb-6 border-green-200 bg-green-50 text-green-800">
+          <Alert className="mb-6 text-green-800 bg-green-50 border-green-200">
             <AlertDescription>{fontState.success}</AlertDescription>
           </Alert>
         )}
 
         {/* Font Upload Section - Split Layout */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+        <div className="mb-6 bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
               1. 폰트 파일 업로드
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+              <div className="min-w-[320px] bg-gray-50 dark:bg-gray-700 rounded-lg p-6 shadow">
+                <h3 className="mb-3 text-lg font-medium text-gray-900 dark:text-white">
                   영문 폰트
                 </h3>
                 <FontUploader
@@ -80,8 +92,8 @@ function App() {
                   onFontUpload={(file) => loadFont(file, "english")}
                 />
               </div>
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
+              <div className="min-w-[320px] bg-gray-50 dark:bg-gray-700 rounded-lg p-6 shadow">
+                <h3 className="mb-3 text-lg font-medium text-gray-900 dark:text-white">
                   한글 폰트
                 </h3>
                 <FontUploader
@@ -97,23 +109,23 @@ function App() {
 
         {/* Merge Options and Actions Section */}
         {canMerge && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+          <div className="mb-6 bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">
             <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
                 2. 합치기 설정
               </h2>
               <MergeOptions
                 options={mergeOptions}
                 onOptionsChange={setMergeOptions}
                 fontName={fontName}
-                onFontNameChange={setFontName}
+                onFontNameChange={handleFontNameChange}
               />
 
               {/* Progress Bar */}
               {fontState.isLoading && (
                 <div className="mt-6 mb-4">
-                  <div className="flex items-center space-x-4 mb-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                  <div className="flex items-center mb-2 space-x-4">
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     <span className="text-sm text-gray-600 dark:text-gray-300">
                       폰트 합치는 중... ({Math.round(fontState.progress)}%)
                     </span>
@@ -123,7 +135,7 @@ function App() {
               )}
 
               {/* Action Buttons */}
-              <div className="flex justify-center space-x-4 mt-6">
+              <div className="flex justify-center mt-6 space-x-4">
                 <Button
                   onClick={handleMerge}
                   disabled={!canMerge}
@@ -132,12 +144,12 @@ function App() {
                 >
                   {fontState.isLoading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 w-4 h-4 animate-spin" />
                       합치는 중...
                     </>
                   ) : (
                     <>
-                      <Merge className="mr-2 h-4 w-4" />
+                      <Merge className="mr-2 w-4 h-4" />
                       폰트 합치기
                     </>
                   )}
@@ -150,7 +162,7 @@ function App() {
                   size="lg"
                   className="min-w-[160px]"
                 >
-                  <Download className="mr-2 h-4 w-4" />
+                  <Download className="mr-2 w-4 h-4" />
                   다운로드
                 </Button>
               </div>
@@ -160,9 +172,9 @@ function App() {
 
         {/* Preview Section */}
         {fontState.mergedFont && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+          <div className="mb-6 bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">
             <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
                 3. 미리보기
               </h2>
               <FontPreview
@@ -175,7 +187,7 @@ function App() {
         )}
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+        <div className="text-sm text-center text-gray-500 dark:text-gray-400">
           <p>지원하는 폰트 형식: TTF, OTF, WOFF, WOFF2</p>
           <p className="mt-1">합쳐진 폰트는 TTF 형식으로 다운로드됩니다.</p>
         </div>

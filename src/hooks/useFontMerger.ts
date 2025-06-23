@@ -100,25 +100,10 @@ export const useFontMerger = () => {
       setFontState((prev) => ({ ...prev, isLoading: true, progress: 0 }))
 
       try {
-        // OpenType.js Font 생성
-        const Font = (window as any).opentype.Font
-
-        const font = new Font({
-          familyName: fontName,
-          styleName: "Regular",
-          unitsPerEm: fontState.koreanFont.font.unitsPerEm,
-          ascender: Math.max(
-            fontState.koreanFont.font.ascender,
-            fontState.englishFont.font.ascender
-          ),
-          descender: Math.min(
-            fontState.koreanFont.font.descender,
-            fontState.englishFont.font.descender
-          ),
-          glyphs: [],
-        })
-
-        const glyphs = [font.glyphs.get(0)] // .notdef glyph
+        // 글리프 배열 준비
+        const glyphs = []
+        // .notdef glyph 추가 (기존 폰트에서 가져옴)
+        glyphs.push(fontState.koreanFont.font.glyphs.get(0))
         let progress = 0
         const totalSteps = 7
 
@@ -165,9 +150,22 @@ export const useFontMerger = () => {
           setFontState((prev) => ({ ...prev, progress: (++progress / totalSteps) * 100 }))
         }
 
-        // 글리프 설정
-        const GlyphSet = (window as any).opentype.GlyphSet
-        font.glyphs = new GlyphSet(font, glyphs)
+        // OpenType.js Font 생성 (glyphs 배열만 넘김)
+        const Font = (window as any).opentype.Font
+        const font = new Font({
+          familyName: fontName,
+          styleName: "Regular",
+          unitsPerEm: fontState.koreanFont.font.unitsPerEm,
+          ascender: Math.max(
+            fontState.koreanFont.font.ascender,
+            fontState.englishFont.font.ascender
+          ),
+          descender: Math.min(
+            fontState.koreanFont.font.descender,
+            fontState.englishFont.font.descender
+          ),
+          glyphs,
+        })
 
         setFontState((prev) => ({
           ...prev,
