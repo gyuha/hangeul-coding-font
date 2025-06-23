@@ -4,7 +4,6 @@ import { useCallback } from "react"
 import { cn } from "../lib/utils"
 import type { FontInfo } from "../types/font"
 import { Button } from "./ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 
 interface FontUploaderProps {
   title: string
@@ -16,7 +15,6 @@ interface FontUploaderProps {
 
 const FontUploader: React.FC<FontUploaderProps> = ({
   title,
-  description,
   fontInfo,
   onFontUpload,
   acceptedTypes = ".ttf,.otf,.woff,.woff2",

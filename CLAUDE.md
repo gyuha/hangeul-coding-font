@@ -4,15 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-- `npm run dev` - Start development server with host binding
-- `npm run build` - Build for production (runs TypeScript compilation first)  
-- `npm run lint` - Run Biome linter for code quality checks
-- `npm run lint:fix` - Run Biome linter and fix auto-fixable issues
-- `npm run format` - Check code formatting with Biome
-- `npm run format:fix` - Format code with Biome
-- `npm run check` - Run both linting and formatting checks with Biome
-- `npm run check:fix` - Run Biome check and fix all auto-fixable issues
-- `npm run preview` - Preview production build locally
+**Package Manager**: This project uses `pnpm` as the package manager. Always use `pnpm` commands instead of `npm`.
+
+- `pnpm run dev` - Start development server with host binding
+- `pnpm run build` - Build for production (runs TypeScript compilation first)  
+- `pnpm run lint` - Run Biome linter for code quality checks
+- `pnpm run lint:fix` - Run Biome linter and fix auto-fixable issues
+- `pnpm run format` - Check code formatting with Biome
+- `pnpm run format:fix` - Format code with Biome
+- `pnpm run check` - Run both linting and formatting checks with Biome
+- `pnpm run check:fix` - Run Biome check and fix all auto-fixable issues
+- `pnpm run preview` - Preview production build locally
+- `pnpm install` - Install dependencies
 
 ## Project Architecture
 
@@ -60,3 +63,41 @@ Centralized in `useFontMerger` hook managing:
 ### Font Registration
 
 Loaded fonts are dynamically registered with the browser's FontFace API to enable live preview functionality.
+
+## Development Guidelines
+
+### Code Standards
+- Use TypeScript for all components and functions (no `any` types)
+- Prefer functional components with React Hooks
+- Follow established naming conventions:
+  - Components: PascalCase (e.g., `FontUploader`)
+  - Hooks: camelCase with 'use' prefix (e.g., `useFontMerger`)
+  - Types/Interfaces: PascalCase (e.g., `FontInfo`)
+
+### File Organization
+- Components in `src/components/`
+- Custom hooks in `src/hooks/`
+- Type definitions in `src/types/`
+- Utilities in `src/lib/`
+
+### Font Processing Details
+The font merging process uses specific Unicode ranges:
+- **Korean Hangul**: U+AC00-U+D7AF (한글 음절)
+- **Korean Jamo**: U+3130-U+318F, U+1100-U+11FF, U+A960-U+A97F
+- **English Letters**: U+0041-U+005A (A-Z), U+0061-U+007A (a-z)
+- **Numbers**: U+0030-U+0039 (0-9)
+- **Symbols**: U+0020-U+007E (basic ASCII)
+- **Extended**: U+00A0-U+00FF, U+2000-U+206F
+
+### UI/UX Requirements
+- All components must support dark mode using `dark:` Tailwind classes
+- Use shadcn/ui components for consistency
+- Implement proper loading states with progress indicators
+- Provide immediate feedback for user actions
+- Ensure accessibility with proper ARIA labels and keyboard navigation
+
+### Error Handling
+- Font loading errors should be caught and displayed to users
+- Provide fallback font stacks when font registration fails
+- Include detailed error messages in console for debugging
+- Auto-dismiss success/error messages after 5 seconds

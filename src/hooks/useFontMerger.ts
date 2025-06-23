@@ -13,11 +13,11 @@ export const useFontMerger = () => {
     success: null,
   })
 
-  const formatFileSize = (bytes: number): string => {
+  const formatFileSize = useCallback((bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-  }
+  }, [])
 
   const setError = useCallback((error: string) => {
     setFontState((prev) => ({ ...prev, error, success: null }))
@@ -69,7 +69,7 @@ export const useFontMerger = () => {
   )
 
   const addGlyphsToMap = useCallback(
-    async (glyphMap: Map<number, any>, sourceFont: Font, start: number, end: number) => {
+    async (glyphMap: Map<number, unknown>, sourceFont: Font, start: number, end: number) => {
       let addedCount = 0
       for (let i = start; i <= end; i++) {
         try {
@@ -236,7 +236,9 @@ export const useFontMerger = () => {
           // 기본 폰트 데이터 복사
           toArrayBuffer: () => {
             try {
-              const Font = (window as any).opentype.Font
+              const Font = (
+                window as unknown as { opentype: { Font: new (...args: unknown[]) => Font } }
+              ).opentype.Font
               const tempFont = new Font({
                 familyName: fontName,
                 styleName: "Regular",
@@ -279,23 +281,23 @@ export const useFontMerger = () => {
           }
         } catch (err) {
           console.warn("Merged font registration failed, using fallback:", err)
-          
+
           // 폴백: CSS로 한글+영문 폰트 스택 생성
           try {
             // 한글 폰트와 영문 폰트를 각각 등록
             const koreanFontUrl = URL.createObjectURL(fontState.koreanFont.file)
             const englishFontUrl = URL.createObjectURL(fontState.englishFont.file)
-            
+
             const koreanFontFace = new FontFace(`${fontName}-Korean`, `url(${koreanFontUrl})`)
             const englishFontFace = new FontFace(`${fontName}-English`, `url(${englishFontUrl})`)
-            
+
             await Promise.all([koreanFontFace.load(), englishFontFace.load()])
-            
+
             document.fonts.add(koreanFontFace)
             document.fonts.add(englishFontFace)
-            
+
             // CSS 폰트 스택을 동적으로 생성
-            const style = document.createElement('style')
+            const style = document.createElement("style")
             style.textContent = `
               @font-face {
                 font-family: "${fontName}";
@@ -309,7 +311,7 @@ export const useFontMerger = () => {
               }
             `
             document.head.appendChild(style)
-            
+
             console.log(`Fallback font stack created for "${fontName}"`)
           } catch (fallbackErr) {
             console.warn("Fallback font registration also failed:", fallbackErr)

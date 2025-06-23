@@ -1,5 +1,6 @@
 import { Download, Loader2, Merge } from "lucide-react"
 import { useEffect, useState } from "react"
+import DownloadOverlay from "./components/DownloadOverlay"
 import FontPreview from "./components/FontPreview"
 import FontUploader from "./components/FontUploader"
 import LoadingOverlay from "./components/LoadingOverlay"
@@ -8,7 +9,6 @@ import { Alert, AlertDescription } from "./components/ui/alert"
 import { Button } from "./components/ui/button"
 import { useFontMerger } from "./hooks/useFontMerger"
 import type { MergeOptions as MergeOptionsType } from "./types/font"
-import DownloadOverlay from "./components/DownloadOverlay"
 
 function App() {
   const { fontState, loadFont, mergefonts, downloadFont } = useFontMerger()
@@ -65,9 +65,7 @@ function App() {
 
   return (
     <>
-      {isDownloading && (
-        <DownloadOverlay isVisible={isDownloading} />
-      )}
+      {isDownloading && <DownloadOverlay isVisible={isDownloading} />}
       <LoadingOverlay
         isVisible={fontState.isLoading && !isDownloading}
         progress={fontState.progress}
@@ -143,7 +141,7 @@ function App() {
                   onOptionsChange={setMergeOptions}
                   fontName={fontName}
                   onFontNameChange={handleFontNameChange}
-                  showFontNameWarning={fontState.mergedFont && fontName !== mergedFontName}
+                  showFontNameWarning={!!fontState.mergedFont && fontName !== mergedFontName}
                 />
 
                 {/* Action Buttons */}

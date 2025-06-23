@@ -22,14 +22,13 @@ const FontPreview: React.FC<FontPreviewProps> = ({
 
   // 다크모드 감지
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark')
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
     const handleChange = () => {
       // 컴포넌트 리렌더링을 위해 상태 업데이트
-      setFontLoaded(prev => prev)
+      setFontLoaded((prev) => prev)
     }
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
+    mediaQuery.addEventListener("change", handleChange)
+    return () => mediaQuery.removeEventListener("change", handleChange)
   }, [])
 
   useEffect(() => {
@@ -160,9 +159,7 @@ export const User: React.FC<Props> = ({ name, age }) => {
             placeholder="미리보기 텍스트를 입력하세요..."
             className="min-h-[300px] font-mono leading-relaxed resize-none border-0 p-4 focus-visible:ring-0 bg-transparent"
             style={{
-              fontFamily: fontName 
-                ? `"${fontName}", monospace` 
-                : "monospace",
+              fontFamily: fontName ? `"${fontName}", monospace` : "monospace",
               fontSize: `${fontSize}px`,
             }}
           />
@@ -170,24 +167,20 @@ export const User: React.FC<Props> = ({ name, age }) => {
           <div className="relative">
             <SyntaxHighlighter
               language="typescript"
-              style={document.documentElement.classList.contains('dark') ? oneDark : oneLight}
+              style={document.documentElement.classList.contains("dark") ? oneDark : oneLight}
               customStyle={{
                 margin: 0,
-                padding: '16px',
-                background: 'transparent',
+                padding: "16px",
+                background: "transparent",
                 fontSize: `${fontSize}px`,
-                fontFamily: fontName 
-                  ? `"${fontName}", monospace` 
-                  : "monospace",
-                minHeight: '300px',
-                lineHeight: '1.6',
+                fontFamily: fontName ? `"${fontName}", monospace` : "monospace",
+                minHeight: "300px",
+                lineHeight: "1.6",
               }}
               codeTagProps={{
                 style: {
-                  fontFamily: fontName 
-                    ? `"${fontName}", monospace` 
-                    : "monospace",
-                }
+                  fontFamily: fontName ? `"${fontName}", monospace` : "monospace",
+                },
               }}
             >
               {previewText || defaultPreviewText}

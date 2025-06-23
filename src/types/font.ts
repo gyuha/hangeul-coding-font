@@ -20,7 +20,7 @@ export interface MergeOptions {
 export interface FontState {
   koreanFont: FontInfo | null
   englishFont: FontInfo | null
-  mergedFont: Font | any | null
+  mergedFont: Font | { toArrayBuffer: () => ArrayBuffer } | null
   isLoading: boolean
   progress: number
   error: string | null
