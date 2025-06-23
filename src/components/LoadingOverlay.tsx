@@ -20,7 +20,7 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
         <div className="text-center">
           {/* 애니메이션 아이콘 */}
           <div className="mb-6 flex justify-center">
-            <img src="/assets/spinner.gif" alt="로딩 중" className="h-12 w-12" />
+            <img src={`${import.meta.env.BASE_URL}assets/spinner.gif`} alt="로딩 중" className="h-12 w-12" />
           </div>
 
           {/* 메시지 */}
