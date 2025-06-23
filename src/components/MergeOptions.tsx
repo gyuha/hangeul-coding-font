@@ -40,13 +40,15 @@ const MergeOptions: React.FC<MergeOptionsProps> = ({
     { key: "englishNumbers" as const, label: "영문 숫자 (0-9)", description: "아라비아 숫자" },
     { key: "englishSymbols" as const, label: "영문 기호", description: "기본 ASCII 기호" },
     { key: "englishSpecial" as const, label: "특수문자", description: "확장 ASCII, 유니코드 기호" },
+    { key: "englishLigatures" as const, label: "합자 (Ligatures)", description: "코딩용 합자 (=>, !=, == 등)" },
+    { key: "englishIcons" as const, label: "아이콘 (NerdFonts)", description: "개발자 아이콘 및 심볼" },
   ]
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         <div>
-          <h4 className="font-medium text-sm mb-4 text-gray-700 dark:text-gray-300">
+          <h4 className="mb-4 text-sm font-medium text-gray-700 dark:text-gray-300">
             영문 문자 선택
           </h4>
           <div className="space-y-3">
@@ -70,7 +72,7 @@ const MergeOptions: React.FC<MergeOptionsProps> = ({
         </div>
 
         <div>
-          <h4 className="font-medium text-sm mb-4 text-gray-700 dark:text-gray-300">
+          <h4 className="mb-4 text-sm font-medium text-gray-700 dark:text-gray-300">
             한글 문자 선택
           </h4>
           <div className="space-y-3">
@@ -107,7 +109,7 @@ const MergeOptions: React.FC<MergeOptionsProps> = ({
             className="max-w-sm"
           />
           {showFontNameWarning && (
-            <p className="text-sm text-orange-600 dark:text-orange-400 mt-2">
+            <p className="mt-2 text-sm text-orange-600 dark:text-orange-400">
               ⚠️ 폰트 이름이 변경되었습니다. 폰트 합치기를 다시 실행하면 미리보기에 적용됩니다.
             </p>
           )}

@@ -15,6 +15,8 @@ export interface MergeOptions {
   englishNumbers: boolean
   englishSymbols: boolean
   englishSpecial: boolean
+  englishLigatures: boolean
+  englishIcons: boolean
 }
 
 export interface FontState {

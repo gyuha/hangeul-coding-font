@@ -116,6 +116,8 @@ export const useFontMerger = () => {
         if (options.englishNumbers) stepCount++
         if (options.englishSymbols) stepCount += 4 // 4구간
         if (options.englishSpecial) stepCount += 2 // 2구간
+        if (options.englishLigatures) stepCount++ // 합자
+        if (options.englishIcons) stepCount += 3 // 아이콘 (3구간)
 
         // 최소 1단계 보장
         if (stepCount === 0) stepCount = 1
@@ -202,6 +204,30 @@ export const useFontMerger = () => {
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
           await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x2000, 0x206f)
+          currentStep++
+          setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
+          await new Promise((resolve) => setTimeout(resolve, 200))
+        }
+
+        if (options.englishLigatures) {
+          // 합자 관련 유니코드 범위 (Private Use Area 등에서 합자가 저장되는 경우가 많음)
+          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0xe000, 0xf8ff)
+          currentStep++
+          setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
+          await new Promise((resolve) => setTimeout(resolve, 200))
+        }
+
+        if (options.englishIcons) {
+          // NerdFonts 아이콘 유니코드 범위들
+          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0xe5fa, 0xe6ac) // Seti-UI
+          currentStep++
+          setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
+          await new Promise((resolve) => setTimeout(resolve, 200))
+          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0xe700, 0xe7c5) // Devicons
+          currentStep++
+          setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
+          await new Promise((resolve) => setTimeout(resolve, 200))
+          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0xf000, 0xf2e0) // Font Awesome
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
@@ -307,7 +333,7 @@ export const useFontMerger = () => {
               @font-face {
                 font-family: "${fontName}";
                 src: url("${englishFontUrl}") format("truetype");
-                unicode-range: U+0020-007E, U+00A0-00FF, U+2000-206F;
+                unicode-range: U+0020-007E, U+00A0-00FF, U+2000-206F, U+E000-F8FF, U+E5FA-E6AC, U+E700-E7C5, U+F000-F2E0;
               }
             `
             document.head.appendChild(style)
