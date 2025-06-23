@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "./components/ui/alert"
 import { Button } from "./components/ui/button"
 import { useFontMerger } from "./hooks/useFontMerger"
 import type { MergeOptions as MergeOptionsType } from "./types/font"
+import DownloadOverlay from "./components/DownloadOverlay"
 
 function App() {
   const { fontState, loadFont, mergefonts, downloadFont } = useFontMerger()
@@ -23,8 +24,10 @@ function App() {
   })
 
   const [fontName, setFontName] = useState("")
+  const [appliedFontName, setAppliedFontName] = useState("")
   const [isFontNameEdited, setIsFontNameEdited] = useState(false)
   const [previewText, setPreviewText] = useState("")
+  const [isDownloading, setIsDownloading] = useState(false)
 
   const canMerge = fontState.koreanFont && fontState.englishFont && !fontState.isLoading
   const canDownload = fontState.mergedFont && !fontState.isLoading
@@ -32,26 +35,41 @@ function App() {
   useEffect(() => {
     if (fontState.englishFont && !isFontNameEdited) {
       setFontName(fontState.englishFont.name)
+      setAppliedFontName(fontState.englishFont.name)
     }
   }, [fontState.englishFont, isFontNameEdited])
 
   const handleFontNameChange = (name: string) => {
-    setFontName(name)
+    setAppliedFontName(name)
     setIsFontNameEdited(true)
   }
 
   const handleMerge = () => {
-    mergefonts(mergeOptions, fontName)
+    mergefonts(mergeOptions, appliedFontName)
   }
 
-  const handleDownload = () => {
-    downloadFont(fontName)
+  const downloadFontAsync = (fontName: string) => {
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        downloadFont(fontName)
+        resolve()
+      }, 100)
+    })
+  }
+
+  const handleDownload = async () => {
+    setIsDownloading(true)
+    await downloadFontAsync(appliedFontName)
+    setTimeout(() => setIsDownloading(false), 800)
   }
 
   return (
     <>
+      {isDownloading && (
+        <DownloadOverlay isVisible={isDownloading} />
+      )}
       <LoadingOverlay
-        isVisible={fontState.isLoading}
+        isVisible={fontState.isLoading && !isDownloading}
         progress={fontState.progress}
         message="폰트 합치는 중..."
       />
@@ -125,6 +143,7 @@ function App() {
                   onOptionsChange={setMergeOptions}
                   fontName={fontName}
                   onFontNameChange={handleFontNameChange}
+                  appliedFontName={appliedFontName}
                 />
 
                 {/* Action Buttons */}
@@ -171,7 +190,7 @@ function App() {
                   3. 미리보기
                 </h2>
                 <FontPreview
-                  fontName={fontName}
+                  fontName={appliedFontName}
                   previewText={previewText}
                   onPreviewTextChange={setPreviewText}
                 />

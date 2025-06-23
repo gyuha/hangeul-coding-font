@@ -20,8 +20,8 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
       <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-2xl max-w-md w-full mx-4">
         <div className="text-center">
           {/* 애니메이션 아이콘 */}
-          <div className="mb-6">
-            <Loader2 className="w-12 h-12 animate-spin mx-auto text-blue-500" />
+          <div className="mb-6 flex justify-center">
+            <img src="/assets/spinner.gif" alt="로딩 중" className="h-12 w-12" />
           </div>
 
           {/* 메시지 */}
