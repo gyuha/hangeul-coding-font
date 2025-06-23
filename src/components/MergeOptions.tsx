@@ -1,6 +1,6 @@
 import type React from "react"
+import { useId } from "react"
 import type { MergeOptions as MergeOptionsType } from "../types/font"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { Checkbox } from "./ui/checkbox"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
@@ -18,6 +18,8 @@ const MergeOptions: React.FC<MergeOptionsProps> = ({
   fontName,
   onFontNameChange,
 }) => {
+  const fontNameId = useId()
+
   const handleOptionChange = (key: keyof MergeOptionsType, checked: boolean) => {
     onOptionsChange({
       ...options,
@@ -39,74 +41,72 @@ const MergeOptions: React.FC<MergeOptionsProps> = ({
   ]
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>합치기 옵션</CardTitle>
-        <CardDescription>각 폰트에서 포함할 문자를 선택하세요</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <h4 className="font-medium text-sm">한글 문자 선택</h4>
-            <div className="space-y-3">
-              {koreanOptions.map(({ key, label, description }) => (
-                <div key={key} className="flex items-start space-x-3">
-                  <Checkbox
-                    id={key}
-                    checked={options[key]}
-                    onCheckedChange={(checked) => handleOptionChange(key, checked as boolean)}
-                    className="mt-1"
-                  />
-                  <div className="space-y-1">
-                    <Label htmlFor={key} className="text-sm font-medium cursor-pointer">
-                      {label}
-                    </Label>
-                    <p className="text-xs text-muted-foreground">{description}</p>
-                  </div>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <h4 className="font-medium text-sm mb-4 text-gray-700 dark:text-gray-300">
+            한글 문자 선택
+          </h4>
+          <div className="space-y-3">
+            {koreanOptions.map(({ key, label, description }) => (
+              <div key={key} className="flex items-start space-x-3">
+                <Checkbox
+                  id={key}
+                  checked={options[key]}
+                  onCheckedChange={(checked) => handleOptionChange(key, checked as boolean)}
+                  className="mt-1"
+                />
+                <div className="space-y-1">
+                  <Label htmlFor={key} className="text-sm font-medium cursor-pointer">
+                    {label}
+                  </Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="font-medium text-sm">영문 문자 선택</h4>
-            <div className="space-y-3">
-              {englishOptions.map(({ key, label, description }) => (
-                <div key={key} className="flex items-start space-x-3">
-                  <Checkbox
-                    id={key}
-                    checked={options[key]}
-                    onCheckedChange={(checked) => handleOptionChange(key, checked as boolean)}
-                    className="mt-1"
-                  />
-                  <div className="space-y-1">
-                    <Label htmlFor={key} className="text-sm font-medium cursor-pointer">
-                      {label}
-                    </Label>
-                    <p className="text-xs text-muted-foreground">{description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="pt-4 border-t">
-          <div className="space-y-2">
-            <Label htmlFor="font-name" className="text-sm font-medium">
-              합쳐진 폰트 이름
-            </Label>
-            <Input
-              id="font-name"
-              value={fontName}
-              onChange={(e) => onFontNameChange(e.target.value)}
-              placeholder="폰트 이름을 입력하세요"
-              className="max-w-sm"
-            />
+        <div>
+          <h4 className="font-medium text-sm mb-4 text-gray-700 dark:text-gray-300">
+            영문 문자 선택
+          </h4>
+          <div className="space-y-3">
+            {englishOptions.map(({ key, label, description }) => (
+              <div key={key} className="flex items-start space-x-3">
+                <Checkbox
+                  id={key}
+                  checked={options[key]}
+                  onCheckedChange={(checked) => handleOptionChange(key, checked as boolean)}
+                  className="mt-1"
+                />
+                <div className="space-y-1">
+                  <Label htmlFor={key} className="text-sm font-medium cursor-pointer">
+                    {label}
+                  </Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="space-y-2">
+          <Label htmlFor={fontNameId} className="text-sm font-medium">
+            합쳐진 폰트 이름
+          </Label>
+          <Input
+            id={fontNameId}
+            value={fontName}
+            onChange={(e) => onFontNameChange(e.target.value)}
+            placeholder="폰트 이름을 입력하세요"
+            className="max-w-sm"
+          />
+        </div>
+      </div>
+    </div>
   )
 }
 
