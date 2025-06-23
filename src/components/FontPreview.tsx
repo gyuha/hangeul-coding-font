@@ -1,5 +1,7 @@
 import type React from "react"
 import { useEffect, useState } from "react"
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
+import { oneDark, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism"
 import { Button } from "./ui/button"
 import { Textarea } from "./ui/textarea"
 
@@ -16,6 +18,19 @@ const FontPreview: React.FC<FontPreviewProps> = ({
 }) => {
   const [fontSize, setFontSize] = useState(14)
   const [fontLoaded, setFontLoaded] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+
+  // 다크모드 감지
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains('dark')
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleChange = () => {
+      // 컴포넌트 리렌더링을 위해 상태 업데이트
+      setFontLoaded(prev => prev)
+    }
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
 
   useEffect(() => {
     const checkFontLoad = async () => {
@@ -126,22 +141,59 @@ export const User: React.FC<Props> = ({ name, age }) => {
           >
             +
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditing(!isEditing)}
+            className="text-xs"
+          >
+            {isEditing ? "미리보기" : "편집"}
+          </Button>
         </div>
       </div>
 
-      <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-900">
-        <Textarea
-          value={previewText || defaultPreviewText}
-          onChange={(e) => onPreviewTextChange(e.target.value)}
-          placeholder="미리보기 텍스트를 입력하세요..."
-          className="min-h-[300px] font-mono leading-relaxed resize-none border-0 p-0 focus-visible:ring-0 bg-transparent"
-          style={{
-            fontFamily: fontName 
-              ? `"${fontName}", monospace` 
-              : "monospace",
-            fontSize: `${fontSize}px`,
-          }}
-        />
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 overflow-hidden">
+        {isEditing ? (
+          <Textarea
+            value={previewText || defaultPreviewText}
+            onChange={(e) => onPreviewTextChange(e.target.value)}
+            placeholder="미리보기 텍스트를 입력하세요..."
+            className="min-h-[300px] font-mono leading-relaxed resize-none border-0 p-4 focus-visible:ring-0 bg-transparent"
+            style={{
+              fontFamily: fontName 
+                ? `"${fontName}", monospace` 
+                : "monospace",
+              fontSize: `${fontSize}px`,
+            }}
+          />
+        ) : (
+          <div className="relative">
+            <SyntaxHighlighter
+              language="typescript"
+              style={document.documentElement.classList.contains('dark') ? oneDark : oneLight}
+              customStyle={{
+                margin: 0,
+                padding: '16px',
+                background: 'transparent',
+                fontSize: `${fontSize}px`,
+                fontFamily: fontName 
+                  ? `"${fontName}", monospace` 
+                  : "monospace",
+                minHeight: '300px',
+                lineHeight: '1.6',
+              }}
+              codeTagProps={{
+                style: {
+                  fontFamily: fontName 
+                    ? `"${fontName}", monospace` 
+                    : "monospace",
+                }
+              }}
+            >
+              {previewText || defaultPreviewText}
+            </SyntaxHighlighter>
+          </div>
+        )}
       </div>
 
       <div className="text-xs text-gray-500 dark:text-gray-400 flex justify-between">
