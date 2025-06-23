@@ -22,6 +22,8 @@ function App() {
     englishNumbers: true,
     englishSymbols: true,
     englishSpecial: true,
+    englishLigatures: true,
+    englishIcons: false,
   })
 
   const [fontName, setFontName] = useState("")
