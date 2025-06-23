@@ -136,7 +136,9 @@ export const User: React.FC<Props> = ({ name, age }) => {
           placeholder="미리보기 텍스트를 입력하세요..."
           className="min-h-[300px] font-mono leading-relaxed resize-none border-0 p-0 focus-visible:ring-0 bg-transparent"
           style={{
-            fontFamily: fontName ? `"${fontName}", monospace` : "monospace",
+            fontFamily: fontName 
+              ? `"${fontName}", monospace` 
+              : "monospace",
             fontSize: `${fontSize}px`,
           }}
         />
