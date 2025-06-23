@@ -10,6 +10,7 @@ interface MergeOptionsProps {
   onOptionsChange: (options: MergeOptionsType) => void
   fontName: string
   onFontNameChange: (name: string) => void
+  showFontNameWarning: boolean
 }
 
 const MergeOptions: React.FC<MergeOptionsProps> = ({
@@ -17,6 +18,7 @@ const MergeOptions: React.FC<MergeOptionsProps> = ({
   onOptionsChange,
   fontName,
   onFontNameChange,
+  showFontNameWarning,
 }) => {
   const fontNameId = useId()
 
@@ -104,6 +106,11 @@ const MergeOptions: React.FC<MergeOptionsProps> = ({
             placeholder="폰트 이름을 입력하세요"
             className="max-w-sm"
           />
+          {showFontNameWarning && (
+            <p className="text-sm text-orange-600 dark:text-orange-400 mt-2">
+              ⚠️ 폰트 이름이 변경되었습니다. 폰트 합치기를 다시 실행하면 미리보기에 적용됩니다.
+            </p>
+          )}
         </div>
       </div>
     </div>

@@ -24,6 +24,7 @@ function App() {
   })
 
   const [fontName, setFontName] = useState("")
+  const [mergedFontName, setMergedFontName] = useState("")
   const [isFontNameEdited, setIsFontNameEdited] = useState(false)
   const [previewText, setPreviewText] = useState("")
   const [isDownloading, setIsDownloading] = useState(false)
@@ -44,6 +45,7 @@ function App() {
 
   const handleMerge = () => {
     mergefonts(mergeOptions, fontName)
+    setMergedFontName(fontName) // 합치기 완료 후 미리보기용 폰트 이름 설정
   }
 
   const downloadFontAsync = (fontName: string) => {
@@ -141,6 +143,7 @@ function App() {
                   onOptionsChange={setMergeOptions}
                   fontName={fontName}
                   onFontNameChange={handleFontNameChange}
+                  showFontNameWarning={fontState.mergedFont && fontName !== mergedFontName}
                 />
 
                 {/* Action Buttons */}
@@ -187,7 +190,7 @@ function App() {
                   3. 미리보기
                 </h2>
                 <FontPreview
-                  fontName={fontName}
+                  fontName={mergedFontName}
                   previewText={previewText}
                   onPreviewTextChange={setPreviewText}
                 />
