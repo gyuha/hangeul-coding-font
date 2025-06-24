@@ -259,36 +259,57 @@ export const useFontMerger = () => {
         })
 
         console.log(`Prepared ${glyphsArray.length} glyphs for font creation`)
+        console.log(`Korean font original size: ${fontState.koreanFont.size}`)
+        console.log(`English font original size: ${fontState.englishFont.size}`)
+        console.log(`Target glyphs count: ${targetGlyphs.size}`)
+        
+        // 실제 글리프 정보 확인
+        const glyphInfo = Array.from(targetGlyphs.entries()).slice(0, 10)
+        console.log('First 10 glyphs:', glyphInfo.map(([unicode, glyph]) => ({
+          unicode: `U+${unicode.toString(16).padStart(4, '0')}`,
+          char: String.fromCharCode(unicode),
+          hasGlyph: !!glyph
+        })))
 
         // 폰트 생성 단계 진행률 업데이트 (최종 100%)
         setFontState((prev) => ({ ...prev, progress: 100 }))
         await new Promise((resolve) => setTimeout(resolve, 300))
 
-        // 최적화된 폰트 생성
-        let mergedFont: any = null
+        // 최적화된 폰트 생성 - 최소한의 글리프만 포함
+        let mergedFont: Font
         
         try {
           const Font = (
             window as unknown as { opentype: { Font: new (...args: unknown[]) => Font } }
           ).opentype.Font
           
+          // 최소한의 글리프만 선택 (처음 50개만 테스트)
+          const limitedGlyphs = glyphsArray.slice(0, Math.min(50, glyphsArray.length))
+          console.log(`Using only ${limitedGlyphs.length} glyphs instead of ${glyphsArray.length}`)
+          
           // 선택된 글리프만으로 새 폰트 생성
           mergedFont = new Font({
             familyName: fontName,
             styleName: "Regular",
-            unitsPerEm: baseFont.unitsPerEm || 1000,
-            ascender: Math.max(
-              fontState.koreanFont?.font.ascender || 800,
-              fontState.englishFont?.font.ascender || 800
-            ),
-            descender: Math.min(
-              fontState.koreanFont?.font.descender || -200,
-              fontState.englishFont?.font.descender || -200
-            ),
-            glyphs: glyphsArray,
+            unitsPerEm: 1000, // 고정값 사용
+            ascender: 800, // 고정값 사용
+            descender: -200, // 고정값 사용
+            glyphs: limitedGlyphs,
           })
           
-          console.log(`Created optimized font with ${glyphsArray.length} glyphs`)
+          console.log(`Created minimal font with ${limitedGlyphs.length} glyphs`)
+        
+          // 폰트 크기 디버깅
+          const fontBuffer = mergedFont.toArrayBuffer()
+          console.log(`Font buffer size: ${fontBuffer.byteLength} bytes`)
+          console.log(`Bytes per glyph: ${fontBuffer.byteLength / limitedGlyphs.length}`)
+          
+          // 글리프 상세 정보
+          console.log('Limited glyph details:', limitedGlyphs.slice(0, 5).map(g => ({
+            name: g?.name || 'unnamed',
+            unicode: g?.unicode || 'no unicode',
+            index: g?.index || 'no index'
+          })))
         } catch (error) {
           console.error("Font creation failed:", error)
           throw new Error(
