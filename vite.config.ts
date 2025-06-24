@@ -28,6 +28,15 @@ export default defineConfig(({ mode }) => {
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),
     },
+    server: {
+      host: "0.0.0.0",
+      allowedHosts: [
+        "fe.gyuha.com",
+        "localhost",
+        "127.0.0.1",
+        ".gyuha.com"
+      ]
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
