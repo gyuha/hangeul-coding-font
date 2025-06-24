@@ -43,7 +43,7 @@ When user requests deployment, follow these steps in order:
 # 1. Update version in package.json
 # 2. Build production assets
 pnpm run build
-# 3. Stage and commit all changes
+# 3. If there are no errors, stage and commit all changes; if there are errors, fix them.
 git add .
 git commit -m "descriptive message"
 # 4. Push to remote
