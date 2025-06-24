@@ -1,6 +1,7 @@
 import { Download, Loader2, Merge } from "lucide-react"
 import { useEffect, useState } from "react"
 import DownloadOverlay from "./components/DownloadOverlay"
+import ErrorDialog from "./components/ErrorDialog"
 import FontPreview from "./components/FontPreview"
 import FontUploader from "./components/FontUploader"
 import GitHubCorner from "./components/GitHubCorner"
@@ -12,7 +13,7 @@ import { useFontMerger } from "./hooks/useFontMerger"
 import type { MergeOptions as MergeOptionsType } from "./types/font"
 
 function App() {
-  const { fontState, loadFont, mergefonts, downloadFont } = useFontMerger()
+  const { fontState, loadFont, mergefonts, downloadFont, clearError } = useFontMerger()
 
   const [mergeOptions, setMergeOptions] = useState<MergeOptionsType>({
     koreanHangul: true,
@@ -87,12 +88,12 @@ function App() {
             </p>
           </div>
 
-          {/* Error/Success Messages */}
-          {fontState.error && (
-            <Alert className="mb-6 text-red-800 bg-red-50 border-red-200">
-              <AlertDescription>{fontState.error}</AlertDescription>
-            </Alert>
-          )}
+          {/* Error Dialog */}
+          <ErrorDialog
+            isOpen={!!fontState.error}
+            onClose={clearError}
+            message={fontState.error || ""}
+          />
 
           {fontState.success && (
             <Alert className="mb-6 text-green-800 bg-green-50 border-green-200">

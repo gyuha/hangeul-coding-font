@@ -10,10 +10,10 @@ import pkg from "./package.json"
 
 // HTML Transform Plugin
 const htmlTransformPlugin = (): Plugin => ({
-  name: 'html-transform',
+  name: "html-transform",
   transformIndexHtml(html) {
-    return html.replace('%VITE_APP_VERSION%', pkg.version)
-  }
+    return html.replace("%VITE_APP_VERSION%", pkg.version)
+  },
 })
 
 // https://vite.dev/config/

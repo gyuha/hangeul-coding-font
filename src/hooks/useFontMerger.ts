@@ -3,6 +3,9 @@ import { useCallback, useState } from "react"
 import type { FontInfo, FontState, MergeOptions } from "../types/font"
 
 export const useFontMerger = () => {
+  const clearError = useCallback(() => {
+    setFontState((prev) => ({ ...prev, error: null }))
+  }, [])
   const [fontState, setFontState] = useState<FontState>({
     koreanFont: null,
     englishFont: null,
@@ -21,7 +24,7 @@ export const useFontMerger = () => {
 
   const setError = useCallback((error: string) => {
     setFontState((prev) => ({ ...prev, error, success: null }))
-    setTimeout(() => setFontState((prev) => ({ ...prev, error: null })), 5000)
+    // Dialog 사용 시 자동으로 닫히지 않도록 setTimeout 제거
   }, [])
 
   const setSuccess = useCallback((success: string) => {
@@ -247,14 +250,14 @@ export const useFontMerger = () => {
 
         // 글리프 배열로 변환 및 인덱스 재정렬
         const glyphsArray = Array.from(targetGlyphs.values())
-        
+
         // 글리프에 올바른 인덱스 할당
         glyphsArray.forEach((glyph, index) => {
-          if (glyph && typeof glyph === 'object' && 'index' in glyph) {
-            (glyph as any).index = index
+          if (glyph && typeof glyph === "object" && "index" in glyph) {
+            ;(glyph as { index: number }).index = index
           }
         })
-        
+
         console.log(`Prepared ${glyphsArray.length} glyphs for font creation`)
 
         // 폰트 생성 단계 진행률 업데이트 (최종 100%)
@@ -298,13 +301,15 @@ export const useFontMerger = () => {
                   fontState.koreanFont?.font.descender || -200,
                   fontState.englishFont?.font.descender || -200
                 ),
-                glyphs: glyphsArray
+                glyphs: glyphsArray,
               })
               return tempFont.toArrayBuffer()
             } catch (error) {
               console.error("Font creation failed:", error)
-              // 폴백으로 기본 폰트 반환
-              return baseFont.toArrayBuffer()
+              // 빈 폰트 데이터 반환 (다운로드 실패 처리)
+              throw new Error(
+                `Font creation failed: ${error instanceof Error ? error.message : "Unknown error"}`
+              )
             }
           },
         }
@@ -414,5 +419,6 @@ export const useFontMerger = () => {
     loadFont,
     mergefonts,
     downloadFont,
+    clearError,
   }
 }
