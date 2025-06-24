@@ -87,10 +87,11 @@ export const useFontMerger = () => {
           const char = String.fromCharCode(i)
           const glyphIndex = sourceFont.charToGlyphIndex(char)
 
+          // 실제 글리프가 존재하고 중복되지 않은 경우만 추가
           if (glyphIndex > 0 && !glyphMap.has(i)) {
             const originalGlyph = sourceFont.glyphs.get(glyphIndex)
-            if (originalGlyph) {
-              // 유니코드 값을 키로 하여 글리프 저장
+            // 글리프가 실제로 존재하고 유효한 경우만 추가
+            if (originalGlyph && originalGlyph.unicode !== undefined) {
               glyphMap.set(i, originalGlyph)
               addedCount++
             }
@@ -244,8 +245,16 @@ export const useFontMerger = () => {
           await new Promise((resolve) => setTimeout(resolve, 200))
         }
 
-        // 글리프 배열로 변환
+        // 글리프 배열로 변환 및 인덱스 재정렬
         const glyphsArray = Array.from(targetGlyphs.values())
+        
+        // 글리프에 올바른 인덱스 할당
+        glyphsArray.forEach((glyph, index) => {
+          if (glyph && typeof glyph === 'object' && 'index' in glyph) {
+            (glyph as any).index = index
+          }
+        })
+        
         console.log(`Prepared ${glyphsArray.length} glyphs for font creation`)
 
         // 폰트 생성 단계 진행률 업데이트 (최종 100%)
@@ -276,10 +285,11 @@ export const useFontMerger = () => {
               const Font = (
                 window as unknown as { opentype: { Font: new (...args: unknown[]) => Font } }
               ).opentype.Font
+              // 간소화된 폰트 생성으로 크기 최적화
               const tempFont = new Font({
                 familyName: fontName,
                 styleName: "Regular",
-                unitsPerEm: baseFont.unitsPerEm,
+                unitsPerEm: baseFont.unitsPerEm || 1000,
                 ascender: Math.max(
                   fontState.koreanFont?.font.ascender || 800,
                   fontState.englishFont?.font.ascender || 800
@@ -288,26 +298,7 @@ export const useFontMerger = () => {
                   fontState.koreanFont?.font.descender || -200,
                   fontState.englishFont?.font.descender || -200
                 ),
-                glyphs: glyphsArray,
-                // 추가 메타데이터로 시스템 인식 개선
-                names: {
-                  fontFamily: { en: fontName },
-                  fontSubfamily: { en: "Regular" },
-                  fullName: { en: fontName },
-                  postScriptName: { en: fontName.replace(/\s/g, "") },
-                  version: { en: "1.0" },
-                  description: { en: "Merged Korean-English Coding Font" },
-                  designer: { en: "Font Merger" },
-                  designerURL: { en: "" },
-                  manufacturer: { en: "Font Merger" },
-                  manufacturerURL: { en: "" },
-                  license: { en: "Custom" },
-                  licenseURL: { en: "" },
-                  preferredFamily: { en: fontName },
-                  preferredSubfamily: { en: "Regular" },
-                  compatibleFullName: { en: fontName },
-                  sampleText: { en: "Sample Text 샘플 텍스트" }
-                }
+                glyphs: glyphsArray
               })
               return tempFont.toArrayBuffer()
             } catch (error) {
