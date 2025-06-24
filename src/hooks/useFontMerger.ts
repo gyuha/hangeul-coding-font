@@ -264,62 +264,44 @@ export const useFontMerger = () => {
         setFontState((prev) => ({ ...prev, progress: 100 }))
         await new Promise((resolve) => setTimeout(resolve, 300))
 
-        // 간단한 방식으로 폰트 생성
-        const font = {
-          familyName: fontName,
-          names: {
-            fontFamily: { en: fontName },
-            fullName: { en: fontName },
-            postScriptName: { en: fontName.replace(/\s/g, "") },
-          },
-          unitsPerEm: baseFont.unitsPerEm,
-          ascender: Math.max(
-            fontState.koreanFont.font.ascender,
-            fontState.englishFont.font.ascender
-          ),
-          descender: Math.min(
-            fontState.koreanFont.font.descender,
-            fontState.englishFont.font.descender
-          ),
-          glyphs: { glyphs: glyphsArray },
-          // 기본 폰트 데이터 복사
-          toArrayBuffer: () => {
-            try {
-              const Font = (
-                window as unknown as { opentype: { Font: new (...args: unknown[]) => Font } }
-              ).opentype.Font
-              // 간소화된 폰트 생성으로 크기 최적화
-              const tempFont = new Font({
-                familyName: fontName,
-                styleName: "Regular",
-                unitsPerEm: baseFont.unitsPerEm || 1000,
-                ascender: Math.max(
-                  fontState.koreanFont?.font.ascender || 800,
-                  fontState.englishFont?.font.ascender || 800
-                ),
-                descender: Math.min(
-                  fontState.koreanFont?.font.descender || -200,
-                  fontState.englishFont?.font.descender || -200
-                ),
-                glyphs: glyphsArray,
-              })
-              return tempFont.toArrayBuffer()
-            } catch (error) {
-              console.error("Font creation failed:", error)
-              // 빈 폰트 데이터 반환 (다운로드 실패 처리)
-              throw new Error(
-                `Font creation failed: ${error instanceof Error ? error.message : "Unknown error"}`
-              )
-            }
-          },
+        // 최적화된 폰트 생성
+        let mergedFont: any = null
+        
+        try {
+          const Font = (
+            window as unknown as { opentype: { Font: new (...args: unknown[]) => Font } }
+          ).opentype.Font
+          
+          // 선택된 글리프만으로 새 폰트 생성
+          mergedFont = new Font({
+            familyName: fontName,
+            styleName: "Regular",
+            unitsPerEm: baseFont.unitsPerEm || 1000,
+            ascender: Math.max(
+              fontState.koreanFont?.font.ascender || 800,
+              fontState.englishFont?.font.ascender || 800
+            ),
+            descender: Math.min(
+              fontState.koreanFont?.font.descender || -200,
+              fontState.englishFont?.font.descender || -200
+            ),
+            glyphs: glyphsArray,
+          })
+          
+          console.log(`Created optimized font with ${glyphsArray.length} glyphs`)
+        } catch (error) {
+          console.error("Font creation failed:", error)
+          throw new Error(
+            `Font creation failed: ${error instanceof Error ? error.message : "Unknown error"}`
+          )
         }
 
         console.log(`Created merged font object with ${glyphsArray.length} glyphs`)
 
-        // 미리보기를 위해 한글 폰트를 사용
+        // 미리보기를 위해 합쳐진 폰트 등록
         try {
           // 합쳐진 폰트 등록 시도
-          const arrayBuffer = font.toArrayBuffer()
+          const arrayBuffer = mergedFont.toArrayBuffer()
           if (arrayBuffer && arrayBuffer.byteLength > 1000) {
             const fontBlob = new Blob([arrayBuffer], { type: "font/ttf" })
             const fontUrl = URL.createObjectURL(fontBlob)
@@ -372,7 +354,7 @@ export const useFontMerger = () => {
 
         setFontState((prev) => ({
           ...prev,
-          mergedFont: font,
+          mergedFont: mergedFont,
           isLoading: false,
           progress: 100,
         }))
