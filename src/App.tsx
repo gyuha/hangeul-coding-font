@@ -52,19 +52,28 @@ function App() {
     setMergedFontName(fontName) // 합치기 완료 후 미리보기용 폰트 이름 설정
   }
 
-  const downloadFontAsync = (fontName: string) => {
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        downloadFont(fontName)
-        resolve()
-      }, 100)
-    })
-  }
-
   const handleDownload = async () => {
     setIsDownloading(true)
-    await downloadFontAsync(fontName)
-    setTimeout(() => setIsDownloading(false), 800)
+    
+    // UI 업데이트를 위해 잠시 대기
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    try {
+      // 다운로드 처리를 비동기로 실행
+      await new Promise<void>((resolve, reject) => {
+        try {
+          downloadFont(fontName)
+          resolve()
+        } catch (error) {
+          reject(error)
+        }
+      })
+    } catch (error) {
+      console.error("Download failed:", error)
+    } finally {
+      // 다운로드 완료 후 스피너 숨기기
+      setTimeout(() => setIsDownloading(false), 800)
+    }
   }
 
   return (
