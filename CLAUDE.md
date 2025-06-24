@@ -29,7 +29,28 @@ The project uses environment variables to configure deployment paths:
 
 - `VITE_BASE_PATH` - Base path for deployment (e.g., `/`, `/hangeul-coding-font/`)
 
-### Deployment
+### Deployment Process
+
+When user requests deployment, follow these steps in order:
+
+1. **Version Update**: Increment version in `package.json` (patch/minor/major as appropriate)
+2. **Build**: Run `pnpm run build` to generate production build
+3. **Commit**: Create git commit with descriptive message including changes
+4. **Push**: Push commits to remote repository with `git push`
+
+**Deployment Command Sequence:**
+```bash
+# 1. Update version in package.json
+# 2. Build production assets
+pnpm run build
+# 3. Stage and commit all changes
+git add .
+git commit -m "descriptive message"
+# 4. Push to remote
+git push
+```
+
+### Environment Configuration
 
 For different deployment scenarios:
 
