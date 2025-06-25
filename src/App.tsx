@@ -8,6 +8,7 @@ import FontUploader from "./components/FontUploader"
 import GitHubCorner from "./components/GitHubCorner"
 import LoadingOverlay from "./components/LoadingOverlay"
 import MergeOptions from "./components/MergeOptions"
+import VSCodeGuide from "./components/VSCodeGuide"
 import { Button } from "./components/ui/button"
 import { useFontMerger } from "./hooks/useFontMerger"
 import type { MergeOptions as MergeOptionsType } from "./types/font"
@@ -32,6 +33,11 @@ function App() {
   const [isFontNameEdited, setIsFontNameEdited] = useState(false)
   const [previewText, setPreviewText] = useState("")
   const [isDownloading, setIsDownloading] = useState(false)
+  const [downloadInfo, setDownloadInfo] = useState<{
+    downloadFileName: string
+    originalFontName: string
+    postScriptFamilyName: string
+  } | null>(null)
 
   const canMerge = fontState.koreanFont && fontState.englishFont && !fontState.isLoading
   const canDownload = fontState.mergedFont && !fontState.isLoading
@@ -62,7 +68,10 @@ function App() {
       // 다운로드 처리를 비동기로 실행
       await new Promise<void>((resolve, reject) => {
         try {
-          downloadFont(fontName)
+          const result = downloadFont(fontName)
+          if (result) {
+            setDownloadInfo(result)
+          }
           resolve()
         } catch (error) {
           reject(error)
@@ -203,6 +212,15 @@ function App() {
                     다운로드
                   </Button>
                 </div>
+
+                {/* VSCode Guide - 다운로드 버튼 밑에 표시 */}
+                {downloadInfo && (
+                  <VSCodeGuide
+                    downloadFileName={downloadInfo.downloadFileName}
+                    originalFontName={downloadInfo.originalFontName}
+                    postScriptFamilyName={downloadInfo.postScriptFamilyName}
+                  />
+                )}
               </div>
             </div>
           )}
