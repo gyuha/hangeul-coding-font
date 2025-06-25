@@ -578,19 +578,30 @@ export const useFontMerger = () => {
           progress: 100,
         }))
 
-        // VSCode 호환성을 위한 안전한 폰트 이름 생성
+        // VSCode 사용을 위한 명확한 안내 메시지
         const safeFontName = fontName.replace(/[^a-zA-Z0-9\-]/g, "")
         const displayName = safeFontName.length > 0 ? safeFontName : "HangeulCodingFont"
         
         const successMessage = `
-폰트 합치기가 완료되었습니다! 
+🎉 폰트 합치기가 완료되었습니다!
 
-🎉 미리보기에서 "${fontName}" 폰트로 확인하세요.
+📱 **웹 미리보기**: 현재 화면에서 "${fontName}" 폰트로 확인하세요.
 
-📝 VSCode에서 사용하려면 다운로드 후:
-   "editor.fontFamily": "${displayName}, monospace"
-   
-💡 폰트가 인식되지 않으면 VSCode 재시작을 시도해보세요.
+💻 **VSCode에서 사용하려면**:
+   1️⃣ 반드시 폰트를 다운로드한 후
+   2️⃣ 시스템에 설치하세요 (더블클릭 → 설치)
+   3️⃣ VSCode 설정에서 아래 내용 추가:
+      "editor.fontFamily": "${displayName}, monospace"
+   4️⃣ VSCode 재시작
+
+⚠️ **중요**: 웹에서 생성된 폰트는 미리보기용입니다.
+   VSCode, Sublime Text 등의 에디터에서 사용하려면
+   반드시 시스템에 설치해야 합니다!
+
+🔄 폰트가 인식되지 않으면:
+   - 폰트 파일을 다시 설치
+   - 에디터 완전 재시작
+   - 폰트 이름 확인 (속성 → 세부정보 탭)
         `.trim()
 
         setSuccess(successMessage)
@@ -645,21 +656,28 @@ export const useFontMerger = () => {
         
         // VSCode 사용 안내 메시지
         const vscodeInstructions = `
-폰트 다운로드가 시작되었습니다! 
+📥 **폰트 다운로드 완료!**
 
-🔧 VSCode에서 사용하려면:
-1. settings.json을 열고 다음 설정을 추가하세요:
-   "editor.fontFamily": "${downloadFileName}, monospace"
-   "editor.fontSize": 14
-   "editor.fontWeight": "400"
+🚀 **시스템 설치 방법**:
+   1️⃣ 다운로드된 "${downloadFileName}.ttf" 파일을 더블클릭
+   2️⃣ "설치" 버튼 클릭
+   3️⃣ 설치 완료 후 모든 에디터 종료
 
-2. 폰트가 제대로 적용되지 않으면:
-   - VSCode를 완전히 재시작해보세요
-   - 폰트 이름을 따옴표로 감싸보세요: "'${downloadFileName}'"
-   - 시스템 폰트로 설치 후 시도해보세요
+💻 **VSCode 설정**:
+   1️⃣ 설정(Ctrl+,) → settings.json 열기
+   2️⃣ 다음 내용 추가:
+   {
+     "editor.fontFamily": "${downloadFileName}, monospace",
+     "editor.fontSize": 14,
+     "terminal.integrated.fontFamily": "${downloadFileName}, monospace"
+   }
 
-💡 터미널에서도 사용하려면:
-   "terminal.integrated.fontFamily": "${downloadFileName}, monospace"
+🔄 **문제 해결**:
+   ❌ 폰트가 안 보이면: VSCode 완전 재시작
+   ❌ 여전히 안 되면: 폰트명 따옴표 감싸기 "'${downloadFileName}'"
+   ❌ 계속 문제: 시스템 폰트 목록에서 정확한 이름 확인
+
+⚠️ **중요**: 웹 미리보기와 달리 실제 사용은 시스템 설치 필수!
         `.trim()
         
         setSuccess(vscodeInstructions)
