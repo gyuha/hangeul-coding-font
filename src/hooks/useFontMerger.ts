@@ -263,91 +263,10 @@ export const useFontMerger = () => {
         // 글리프 배열로 변환 및 인덱스 재정렬
         const glyphsArray = Array.from(targetGlyphs.values())
 
-        // 한글 코딩 폰트 원본 폭 사용 - D2Coding 방식
-        // 각 폰트의 원본 advanceWidth를 최대한 보존하여 고정폭 깨짐 방지
-        let englishWidth = 600 // 기본값
-        let originalKoreanWidth = 1200 // 기본값
-
-        // 영문 폰트의 실제 너비 측정 (대표 문자 'M' 사용)
-        try {
-          const mGlyphIndex = fontState.englishFont.font.charToGlyphIndex("M")
-          if (mGlyphIndex > 0) {
-            const mGlyph = fontState.englishFont.font.glyphs.get(mGlyphIndex)
-            if (mGlyph?.advanceWidth) {
-              englishWidth = mGlyph.advanceWidth
-              console.log(`English font original width (M): ${englishWidth}`)
-            }
-          }
-        } catch (e) {
-          console.warn("Failed to get English M glyph width, using default:", e)
-        }
-
-        // 한글 폰트의 실제 너비 측정 (대표 한글 문자들 '가', '한', '국' 사용)
-        try {
-          const koreanTestChars = ['가', '한', '국', '코', '딩'] // 다양한 한글 문자로 테스트
-          let koreanWidthSum = 0
-          let validKoreanCount = 0
-
-          for (const testChar of koreanTestChars) {
-            const koreanGlyphIndex = fontState.koreanFont.font.charToGlyphIndex(testChar)
-            if (koreanGlyphIndex > 0) {
-              const koreanGlyph = fontState.koreanFont.font.glyphs.get(koreanGlyphIndex)
-              if (koreanGlyph?.advanceWidth && koreanGlyph.advanceWidth > 0) {
-                koreanWidthSum += koreanGlyph.advanceWidth
-                validKoreanCount++
-                console.log(`Korean char '${testChar}' original width: ${koreanGlyph.advanceWidth}`)
-              }
-            }
-          }
-
-          if (validKoreanCount > 0) {
-            originalKoreanWidth = Math.round(koreanWidthSum / validKoreanCount)
-            console.log(`Korean font average original width: ${originalKoreanWidth} (from ${validKoreanCount} chars)`)
-          }
-        } catch (e) {
-          console.warn("Failed to get Korean glyph widths, using calculated default:", e)
-        }
-
-        // 최종 폭 결정: 원본 한글 폭을 우선 사용하되, 영문과의 조화 고려
-        let koreanWidth = originalKoreanWidth
-
-        // 한글 폰트가 극단적으로 좁거나 넓은 경우에만 조정
-        const ratio = koreanWidth / englishWidth
-        if (ratio < 1.2) {
-          // 너무 좁으면 영문의 2배로 설정 (D2Coding 표준)
-          koreanWidth = englishWidth * 2
-          console.log(`Korean width too narrow (${ratio.toFixed(2)}), adjusted to: ${koreanWidth}`)
-        } else if (ratio > 3.0) {
-          // 너무 넓으면 영문의 2.5배로 제한
-          koreanWidth = englishWidth * 2.5
-          console.log(`Korean width too wide (${ratio.toFixed(2)}), adjusted to: ${koreanWidth}`)
-        } else {
-          // 적정 범위이면 원본 사용
-          console.log(`Using original Korean width: ${koreanWidth} (ratio: ${ratio.toFixed(2)})`)
-        }
-
-        console.log(`Final font widths - English: ${englishWidth}, Korean: ${koreanWidth} (ratio: ${(koreanWidth/englishWidth).toFixed(2)})`)
-
-        // 글리프에 올바른 인덱스와 문자별 적절한 너비 할당
+        // 글리프에 올바른 인덱스 할당
         glyphsArray.forEach((glyph, index) => {
-          if (glyph && typeof glyph === "object" && "index" in glyph && "unicode" in glyph) {
-            const glyphObj = glyph as { index: number; advanceWidth: number; unicode: number }
-            glyphObj.index = index
-
-            // VSCode 모노스페이스 요구사항: 한글은 1.5배, 영문은 1배 너비
-            const unicode = glyphObj.unicode
-            if (
-              // 한글 범위 - 1.5배 너비 사용
-              (unicode >= 0xac00 && unicode <= 0xd7af) || // 한글 음절
-              (unicode >= 0x1100 && unicode <= 0x11ff) || // 한글 자모
-              (unicode >= 0x3130 && unicode <= 0x318f) || // 한글 자모 확장
-              (unicode >= 0xa960 && unicode <= 0xa97f) // 한글 자모 확장-A
-            ) {
-              glyphObj.advanceWidth = koreanWidth
-            } else {
-              // 영문, 숫자, 기호는 영문 너비 (모노스페이스 기본 너비)
-              glyphObj.advanceWidth = englishWidth
-            }
+          if (glyph && typeof glyph === "object" && "index" in glyph) {
+            ;(glyph as { index: number }).index = index
           }
         })
 
@@ -381,130 +300,36 @@ export const useFontMerger = () => {
           console.log(`Using all ${glyphsArray.length} selected glyphs`)
 
           // 모든 선택된 글리프로 새 폰트 생성
-          // VSCode 호환성을 위한 고유한 PostScript 이름 생성
-          const timestamp = Date.now().toString(36)
-          // PostScript 이름: 영문자+숫자만, 63자 이하, 공백 없음
-          const cleanFontName = fontName.replace(/[^a-zA-Z0-9]/g, "").substring(0, 40)
-          const postScriptName = `${cleanFontName}Mono_${timestamp}`
-
+          const postScriptName = fontName.replace(/[^a-zA-Z0-9]/g, "")
           const fontOptions = {
-            familyName: `${fontName} Mono`, // VSCode 모노스페이스 인식을 위한 "Mono" 접미사
+            familyName: fontName,
             styleName: "Regular",
             unitsPerEm: baseFont.unitsPerEm || 1000,
             ascender: baseFont.ascender || 800,
             descender: baseFont.descender || -200,
             lineGap: (baseFont as { lineGap?: number }).lineGap || 0,
             glyphs: glyphsArray,
-            // VSCode 호환성을 위한 완전한 OS/2 및 head 테이블 설정
-            tables: {
-              os2: {
-                version: 4,
-                xAvgCharWidth: Math.round((englishWidth + koreanWidth) / 2), // 영문+한글 평균 너비
-                usWeightClass: 400, // Regular 폰트 가중치
-                usWidthClass: 9, // Monospace 폭 (5에서 9로 변경 - VSCode 필수)
-                fsType: 0, // 자유 사용
-                // VSCode 모노스페이스 인식을 위한 최적화된 fsSelection
-                fsSelection: 0x40 | 0x20, // USE_TYPO_METRICS (bit 7) + WWS (bit 8)
-                sTypoAscender: baseFont.ascender || 800,
-                sTypoDescender: baseFont.descender || -200,
-                sTypoLineGap: Math.round(englishWidth * 0.2), // 영문 너비의 20% 줄 간격
-                usWinAscent: Math.abs(baseFont.ascender || 800),
-                usWinDescent: Math.abs(baseFont.descender || -200),
-                // VSCode에서 중요한 PANOSE 분류 - 완전한 모노스페이스 설정
-                panose: [2, 11, 4, 9, 2, 2, 3, 2, 2, 9], // 마지막 값 9 (Monospaced) + 코딩 폰트 최적화
-                // 확장된 유니코드 범위 설정 (한글+영문+기호 완전 지원)
-                ulUnicodeRange1: 0x2000007f, // Basic Latin + Latin-1 Supplement
-                ulUnicodeRange2: 0x20000200, // General Punctuation + Mathematical Operators
-                ulUnicodeRange3: 0x00100000, // Hangul Syllables
-                ulUnicodeRange4: 0x08000000, // Private Use Area (프로그래밍 아이콘)
-                // 완전한 코드페이지 범위
-                ulCodePageRange1: 0x20000001, // Latin 1 + Korean
-                ulCodePageRange2: 0x00000000,
-                achVendID: "HKCF", // Hangeul Coding Font
-                // VSCode 모노스페이스 폰트 인식을 위한 핵심 설정
-                sxHeight: Math.round(englishWidth * 0.5), // x-height
-                sCapHeight: Math.round(englishWidth * 0.7), // 대문자 높이  
-                usDefaultChar: 0, // 기본 문자
-                usBreakChar: 32, // 공백 문자
-                usMaxContext: 0, // 최대 컨텍스트
-                // 추가 모노스페이스 식별 필드
-                usFirstCharIndex: 32, // 첫 번째 문자 (공백)
-                usLastCharIndex: 0xD7AF, // 마지막 문자 (한글 음절 끝)
-              },
-              head: {
-                magicNumber: 0x5f0f3cf5,
-                unitsPerEm: baseFont.unitsPerEm || 1000,
-                macStyle: 0, // Regular 스타일 (OS/2 fsSelection과 일치)
-                lowestRecPPEM: 8, // 최소 권장 크기
-                fontDirectionHint: 2, // 왼쪽에서 오른쪽 (LTR + RTL)
-                indexToLocFormat: 0, // 짧은 오프셋 형식
-                glyphDataFormat: 0, // 현재 형식
-                // VSCode 전용 추가 설정
-                checkSumAdjustment: 0, // 체크섬 조정
-                created: Date.now(), // 생성 시간
-                modified: Date.now(), // 수정 시간
-              },
-              post: {
-                version: 0x00030000, // PostScript 3.0 버전
-                italicAngle: 0, // 기울기 없음 (Regular)
-                underlinePosition: Math.round(-englishWidth * 0.1), // 밑줄 위치
-                underlineThickness: Math.round(englishWidth * 0.05), // 밑줄 두께
-                isFixedPitch: 1, // 고정폭 폰트 (VSCode 필수!)
-                minMemType42: 0,
-                maxMemType42: 0,
-                minMemType1: 0,
-                maxMemType1: 0,
-              },
-              // VSCode 특화 hhea 테이블 추가 - 모노스페이스 정의
-              hhea: {
-                ascent: baseFont.ascender || 800,
-                descent: baseFont.descender || -200,
-                lineGap: Math.round(englishWidth * 0.2), // 일관된 줄 간격
-                advanceWidthMax: koreanWidth, // 최대 너비 (한글 기준)
-                minLeftSideBearing: 0,
-                minRightSideBearing: 0,
-                xMaxExtent: koreanWidth,
-                caretSlopeRise: 1, // 수직 캐럿
-                caretSlopeRun: 0,
-                caretOffset: 0,
-                numberOfHMetrics: glyphsArray.length, // 모든 글리프의 메트릭
-              },
-            },
-            // VSCode 완전 호환 메타데이터 (모든 필수 name 레코드 포함)
+            // VSCode 호환성을 위한 완전한 메타데이터
             names: {
-              // 기본 레코드 (ID 0-6) - VSCode 인식용 최적화
-              copyright: { en: "Generated by Hangeul Coding Font - Monospace Programming Font" },
-              fontFamily: { en: `${fontName} Mono` }, // "Mono" 접미사로 VSCode 인식 개선
+              copyright: { en: "Generated by Hangeul Coding Font" },
+              fontFamily: { en: fontName },
               fontSubfamily: { en: "Regular" },
-              uniqueID: { en: `${postScriptName}-${timestamp}` },
-              fullName: { en: `${fontName} Mono Regular` },
+              uniqueID: { en: `${postScriptName}-${Date.now()}` },
+              fullName: { en: `${fontName} Regular` },
               version: { en: "Version 1.0" },
               postScriptName: { en: postScriptName },
-              // 추가 정보 레코드 (ID 7-12)
               trademark: { en: "Hangeul Coding Font" },
-              manufacturer: { en: "Hangeul Coding Font Generator" },
+              manufacturer: { en: "Hangeul Coding Font" },
               designer: { en: "Hangeul Coding Font" },
-              description: {
-                en: "Monospace Korean-English coding font optimized for programming editors including VSCode",
-              },
+              description: { en: "Merged Korean-English coding font for programming" },
               vendorURL: { en: "https://github.com/gyuha/hangeul-coding-font" },
               designerURL: { en: "https://github.com/gyuha/hangeul-coding-font" },
-              // 라이센스 레코드 (ID 13-14)
               license: { en: "This font is free for personal and commercial use" },
               licenseURL: { en: "https://github.com/gyuha/hangeul-coding-font/blob/main/LICENSE" },
-              // VSCode 필수 레코드 (ID 16-17) - 가장 중요!
-              preferredFamily: { en: `${fontName} Mono` },
-              preferredSubfamily: { en: "Regular" },
-              // 호환성 레코드 (ID 18-19)
-              compatibleFullName: { en: `${fontName} Mono Regular` },
-              sampleText: {
-                en:
-                  "Monospace: ABCabc123 한글코딩폰트 {}[]=>,;" +
-                  "\nif (condition) { return true; } // 주석",
-              },
-              // 추가 타이포그래피 레코드
-              typographicFamily: { en: `${fontName} Mono` },
+              typographicFamily: { en: fontName },
               typographicSubfamily: { en: "Regular" },
+              compatibleFullName: { en: `${fontName} Regular` },
+              sampleText: { en: "The quick brown fox jumps over the lazy dog. 다람쥐 헌 쳇바퀴에 타고파" },
             },
           }
 
@@ -523,53 +348,28 @@ export const useFontMerger = () => {
                 fontError.message
               )
               const simpleFontOptions = {
-                familyName: `${fontName} Mono`, // VSCode 인식을 위한 "Mono" 접미사
+                familyName: fontName,
                 styleName: "Regular",
                 unitsPerEm: baseFont.unitsPerEm || 1000,
                 ascender: baseFont.ascender || 800,
                 descender: baseFont.descender || -200,
                 lineGap: (baseFont as { lineGap?: number }).lineGap || 0,
                 glyphs: glyphsArray,
-                // 고급 테이블 없이 기본 VSCode 호환성 설정만
-                tables: {
-                  os2: {
-                    version: 4,
-                    fsSelection: 0x40 | 0x20, // USE_TYPO_METRICS + WWS
-                    usWeightClass: 400,
-                    usWidthClass: 9, // Monospace 폭
-                    xAvgCharWidth: Math.round((englishWidth + koreanWidth) / 2),
-                    panose: [2, 11, 4, 9, 2, 2, 3, 2, 2, 9], // 완전한 모노스페이스 PANOSE
-                    achVendID: "HKCF",
-                    // 확장된 유니코드 범위
-                    ulUnicodeRange1: 0x2000007f,
-                    ulUnicodeRange2: 0x20000200,
-                    ulUnicodeRange3: 0x00100000,
-                    ulUnicodeRange4: 0x08000000,
-                  },
-                  head: {
-                    macStyle: 0, // Regular
-                  },
-                  post: {
-                    isFixedPitch: 1, // 고정폭 폰트
-                    version: 0x00030000, // PostScript 3.0
-                  },
-                },
                 names: {
-                  copyright: { en: "Generated by Hangeul Coding Font - Monospace Programming Font" },
-                  fontFamily: { en: `${fontName} Mono` },
+                  copyright: { en: "Generated by Hangeul Coding Font" },
+                  fontFamily: { en: fontName },
                   fontSubfamily: { en: "Regular" },
-                  uniqueID: { en: `${postScriptName}-${timestamp}` },
-                  fullName: { en: `${fontName} Mono Regular` },
+                  uniqueID: { en: `${postScriptName}-${Date.now()}` },
+                  fullName: { en: `${fontName} Regular` },
                   version: { en: "Version 1.0" },
                   postScriptName: { en: postScriptName },
-                  manufacturer: { en: "Hangeul Coding Font Generator" },
+                  manufacturer: { en: "Hangeul Coding Font" },
                   designer: { en: "Hangeul Coding Font" },
-                  description: { en: "Monospace Korean-English coding font optimized for VSCode and programming editors" },
-                  typographicFamily: { en: `${fontName} Mono` },
+                  description: { en: "Merged Korean-English coding font for programming" },
+                  typographicFamily: { en: fontName },
                   typographicSubfamily: { en: "Regular" },
-                  preferredFamily: { en: `${fontName} Mono` },
-                  preferredSubfamily: { en: "Regular" },
                 },
+                // 테이블 정보 제외
               }
               mergedFont = new Font(simpleFontOptions)
             } else {
@@ -619,55 +419,29 @@ export const useFontMerger = () => {
                 serializationError.message
               )
 
-              // 고급 테이블 정보 없이 새 폰트 생성 (VSCode 호환성 개선)
-              const fallbackTimestamp = Date.now().toString(36)
-              const fallbackPostScriptName = `${fontName.replace(/[^a-zA-Z0-9]/g, "")}_${fallbackTimestamp}`
+              // 고급 테이블 정보 없이 새 폰트 생성
+              const fallbackPostScriptName = fontName.replace(/[^a-zA-Z0-9]/g, "")
               const simpleFontOptions = {
-                familyName: `${fontName} Mono`, // VSCode 인식을 위한 "Mono" 접미사
+                familyName: fontName,
                 styleName: "Regular",
                 unitsPerEm: baseFont.unitsPerEm || 1000,
                 ascender: baseFont.ascender || 800,
                 descender: baseFont.descender || -200,
                 lineGap: (baseFont as { lineGap?: number }).lineGap || 0,
                 glyphs: glyphsArray,
-                // 최소한의 VSCode 호환성 설정 (완전한 모노스페이스 설정)
-                tables: {
-                  os2: {
-                    version: 4,
-                    fsSelection: 0x40 | 0x20, // USE_TYPO_METRICS + WWS
-                    usWeightClass: 400,
-                    usWidthClass: 9, // Monospace 폭
-                    xAvgCharWidth: Math.round((englishWidth + koreanWidth) / 2),
-                    panose: [2, 11, 4, 9, 2, 2, 3, 2, 2, 9], // 완전한 모노스페이스 PANOSE
-                    achVendID: "HKCF",
-                    ulUnicodeRange1: 0x2000007f,
-                    ulUnicodeRange2: 0x20000200,
-                    ulUnicodeRange3: 0x00100000,
-                    ulUnicodeRange4: 0x08000000,
-                  },
-                  head: {
-                    macStyle: 0, // Regular
-                  },
-                  post: {
-                    isFixedPitch: 1, // 고정폭 폰트
-                    version: 0x00030000,
-                  },
-                },
                 names: {
-                  copyright: { en: "Generated by Hangeul Coding Font - Monospace Programming Font" },
-                  fontFamily: { en: `${fontName} Mono` },
+                  copyright: { en: "Generated by Hangeul Coding Font" },
+                  fontFamily: { en: fontName },
                   fontSubfamily: { en: "Regular" },
-                  uniqueID: { en: `${fallbackPostScriptName}` },
-                  fullName: { en: `${fontName} Mono Regular` },
+                  uniqueID: { en: `${fallbackPostScriptName}-${Date.now()}` },
+                  fullName: { en: `${fontName} Regular` },
                   version: { en: "Version 1.0" },
                   postScriptName: { en: fallbackPostScriptName },
-                  manufacturer: { en: "Hangeul Coding Font Generator" },
+                  manufacturer: { en: "Hangeul Coding Font" },
                   designer: { en: "Hangeul Coding Font" },
-                  description: { en: "Monospace Korean-English coding font optimized for VSCode and programming editors" },
-                  typographicFamily: { en: `${fontName} Mono` },
+                  description: { en: "Merged Korean-English coding font for programming" },
+                  typographicFamily: { en: fontName },
                   typographicSubfamily: { en: "Regular" },
-                  preferredFamily: { en: `${fontName} Mono` },
-                  preferredSubfamily: { en: "Regular" },
                 },
               }
 
@@ -740,14 +514,6 @@ export const useFontMerger = () => {
         }))
 
         setSuccess("폰트 합치기가 완료되었습니다!")
-        
-        // 폰트 합치기 완료 후 페이지 하단으로 스크롤
-        setTimeout(() => {
-          window.scrollTo({
-            top: document.documentElement.scrollHeight,
-            behavior: 'smooth'
-          })
-        }, 500) // 성공 메시지 표시 후 0.5초 뒤 스크롤
       } catch (error) {
         setFontState((prev) => ({ ...prev, isLoading: false, progress: 0 }))
         setError(`폰트 합치기 실패: ${error instanceof Error ? error.message : "Unknown error"}`)
