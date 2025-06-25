@@ -79,7 +79,7 @@ console.log(greet("개발자"));`,
 ABCDEFGHIJKLMNOPQRSTUVWXYZ
 o008 iIlL1 {} [] g9qCGQ ~-+=>
 
-     ⇡  3.10.12   `
+     ⇡  3.10.12   `,
     },
     {
       label: "실제 코드",
