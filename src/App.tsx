@@ -54,10 +54,10 @@ function App() {
 
   const handleDownload = async () => {
     setIsDownloading(true)
-    
+
     // UI 업데이트를 위해 잠시 대기
-    await new Promise(resolve => setTimeout(resolve, 100))
-    
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
     try {
       // 다운로드 처리를 비동기로 실행
       await new Promise<void>((resolve, reject) => {

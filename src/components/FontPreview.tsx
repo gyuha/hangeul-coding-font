@@ -59,9 +59,9 @@ console.log(greet("개발자"));
 
 // 다양한 문자 테스트
 // 한글: 가나다라마바사아자차카타파하
-// 영문: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-// 숫자: 0123456789
-// 기호: !@#$%^&*()_+-=[]{}|;':"\\",./<>?`
+// 영문: abcdefghijklmnopqrstuvwxyz
+//       ABCDEFGHIJKLMNOPQRSTUVWXYZ
+// 혼동되기 쉬운 문자: o008 iIlL1 {} [] g9qCGQ ~-+=>`
 
   const sampleTexts = [
     {
@@ -74,10 +74,9 @@ console.log(greet("개발자"));`,
     },
     {
       label: "문자 테스트",
-      text: `// 한글: 가나다라마바사아자차카타파하
-// 영문: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-// 숫자: 0123456789
-// 기호: !@#$%^&*()_+-=[]{}|;':"\\",./<>?`,
+      text: `abcdefghijklmnopqrstuvwxyz
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+o008 iIlL1 {} [] g9qCGQ ~-+=>`,
     },
     {
       label: "실제 코드",

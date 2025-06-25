@@ -24,6 +24,7 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "lorem-ipsum-kr": "^0.0.2",
     "lucide-react": "^0.522.0",
     "opentype.js": "^1.3.4",
     "prismjs": "^1.30.0",
