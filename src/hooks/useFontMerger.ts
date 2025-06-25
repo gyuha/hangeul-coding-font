@@ -84,10 +84,16 @@ export const useFontMerger = () => {
   )
 
   const addGlyphsToMap = useCallback(
-    async (glyphMap: Map<number, unknown>, sourceFont: Font, start: number, end: number, rangeDescription = "") => {
+    async (
+      glyphMap: Map<number, unknown>,
+      sourceFont: Font,
+      start: number,
+      end: number,
+      rangeDescription = ""
+    ) => {
       let addedCount = 0
       let scannedCount = 0
-      
+
       for (let i = start; i <= end; i++) {
         scannedCount++
         try {
@@ -107,11 +113,11 @@ export const useFontMerger = () => {
               addedCount++
             }
           }
-        } catch (error) {
-          // 오류는 콘솔에만 기록 (성능 향상)
+        } catch {
+          // 오류는 무시 (성능 향상)
         }
       }
-      
+
       const efficiency = scannedCount > 0 ? ((addedCount / scannedCount) * 100).toFixed(1) : "0"
       console.log(
         `${rangeDescription}: ${addedCount}/${scannedCount} glyphs added (${efficiency}% efficiency) - U+${start.toString(16).toUpperCase().padStart(4, "0")} to U+${end.toString(16).toUpperCase().padStart(4, "0")}`
@@ -161,25 +167,49 @@ export const useFontMerger = () => {
 
         // 한글 문자 추가
         if (options.koreanHangul) {
-          await addGlyphsToMap(targetGlyphs, fontState.koreanFont.font, 0xac00, 0xd7af, "Korean Hangul")
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.koreanFont.font,
+            0xac00,
+            0xd7af,
+            "Korean Hangul"
+          )
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 300))
         }
 
         if (options.koreanSymbols) {
-          await addGlyphsToMap(targetGlyphs, fontState.koreanFont.font, 0x3130, 0x318f, "Korean Symbols")
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.koreanFont.font,
+            0x3130,
+            0x318f,
+            "Korean Symbols"
+          )
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
-          await addGlyphsToMap(targetGlyphs, fontState.koreanFont.font, 0xa960, 0xa97f, "Korean Numbers")
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.koreanFont.font,
+            0xa960,
+            0xa97f,
+            "Korean Numbers"
+          )
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
         }
 
         if (options.koreanNumbers) {
-          await addGlyphsToMap(targetGlyphs, fontState.koreanFont.font, 0x1100, 0x11ff, "Korean Numbers")
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.koreanFont.font,
+            0x1100,
+            0x11ff,
+            "Korean Numbers"
+          )
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
@@ -187,48 +217,102 @@ export const useFontMerger = () => {
 
         // 영문 문자 추가
         if (options.englishLetters) {
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x0041, 0x005a, "English Uppercase")
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0x0041,
+            0x005a,
+            "English Uppercase"
+          )
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x0061, 0x007a, "English Lowercase")
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0x0061,
+            0x007a,
+            "English Lowercase"
+          )
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
         }
 
         if (options.englishNumbers) {
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x0030, 0x0039, "English Numbers")
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0x0030,
+            0x0039,
+            "English Numbers"
+          )
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
         }
 
         if (options.englishSymbols) {
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x0020, 0x002f, "English Symbols")
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0x0020,
+            0x002f,
+            "English Symbols"
+          )
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x003a, 0x0040, "English Symbols")
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0x003a,
+            0x0040,
+            "English Symbols"
+          )
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x005b, 0x0060, "English Symbols")
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0x005b,
+            0x0060,
+            "English Symbols"
+          )
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x007b, 0x007e, "English Symbols")
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0x007b,
+            0x007e,
+            "English Symbols"
+          )
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
         }
 
         if (options.englishSpecial) {
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x00a0, 0x00ff, "English Special")
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0x00a0,
+            0x00ff,
+            "English Special"
+          )
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x2000, 0x206f, "English Special")
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0x2000,
+            0x206f,
+            "English Special"
+          )
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
@@ -237,12 +321,30 @@ export const useFontMerger = () => {
         if (options.englishLigatures) {
           // 합자 스캔을 효율적으로 개선
           console.log("📝 합자 글리프 스캔 중... (실제 존재하는 글리프만 추가)")
-          
+
           // 1. 먼저 작은 범위에서 합자 확인
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0xfb00, 0xfb4f, "Standard Ligatures") // fi, fl 등
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x2190, 0x21ff, "Arrow Ligatures") // => <= 등
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0x2200, 0x22ff, "Math Ligatures") // != == 등
-          
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0xfb00,
+            0xfb4f,
+            "Standard Ligatures"
+          ) // fi, fl 등
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0x2190,
+            0x21ff,
+            "Arrow Ligatures"
+          ) // => <= 등
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0x2200,
+            0x22ff,
+            "Math Ligatures"
+          ) // != == 등
+
           // 2. Private Use Area는 청크 단위로 효율적 스캔
           const privateUseChunks = [
             { start: 0xe000, end: 0xe0ff, name: "PUA Block 1" },
@@ -252,21 +354,27 @@ export const useFontMerger = () => {
             { start: 0xf100, end: 0xf1ff, name: "PUA Block 5" },
             { start: 0xf200, end: 0xf2ff, name: "PUA Block 6" },
           ]
-          
+
           let ligatureCount = 0
           for (const chunk of privateUseChunks) {
             const beforeCount = targetGlyphs.size
-            await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, chunk.start, chunk.end, chunk.name)
+            await addGlyphsToMap(
+              targetGlyphs,
+              fontState.englishFont.font,
+              chunk.start,
+              chunk.end,
+              chunk.name
+            )
             const addedInChunk = targetGlyphs.size - beforeCount
             ligatureCount += addedInChunk
-            
+
             // 한 청크에서 글리프를 많이 찾으면 계속, 적으면 중단 (최적화)
             if (addedInChunk < 5) {
               console.log(`📊 ${chunk.name}에서 ${addedInChunk}개만 발견, 스캔 최적화`)
               break
             }
           }
-          
+
           console.log(`📝 총 ${ligatureCount}개 합자 글리프 추가됨`)
 
           currentStep++
@@ -276,15 +384,33 @@ export const useFontMerger = () => {
 
         if (options.englishIcons) {
           // NerdFonts 아이콘 유니코드 범위들
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0xe5fa, 0xe6ac, "English Icons") // Seti-UI
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0xe5fa,
+            0xe6ac,
+            "English Icons"
+          ) // Seti-UI
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0xe700, 0xe7c5, "English Icons") // Devicons
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0xe700,
+            0xe7c5,
+            "English Icons"
+          ) // Devicons
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
-          await addGlyphsToMap(targetGlyphs, fontState.englishFont.font, 0xf000, 0xf2e0, "English Icons") // Font Awesome
+          await addGlyphsToMap(
+            targetGlyphs,
+            fontState.englishFont.font,
+            0xf000,
+            0xf2e0,
+            "English Icons"
+          ) // Font Awesome
           currentStep++
           setFontState((prev) => ({ ...prev, progress: (currentStep / stepCount) * 100 }))
           await new Promise((resolve) => setTimeout(resolve, 200))
@@ -330,61 +456,98 @@ export const useFontMerger = () => {
           console.log(`Using all ${glyphsArray.length} selected glyphs`)
 
           // VSCode 호환성을 위한 안전한 PostScript 이름 생성
-          const safeFontName = fontName.replace(/[^a-zA-Z0-9\-]/g, "")
+          const safeFontName = fontName.replace(/[^a-zA-Z0-9-]/g, "")
           const postScriptName = safeFontName.length > 0 ? safeFontName : "HangeulCodingFont"
-          
+
           // VSCode에서 인식하기 위한 더 정확한 폰트 메타데이터 설정
           const displayFamilyName = fontName
           const postScriptFamilyName = `${postScriptName}-Regular`
-          
-          // 크기 최적화를 위한 최소 메타데이터로 폰트 생성
+
+          // 영문 폰트의 메타데이터를 그대로 사용하고 이름만 변경
+          const englishFont = fontState.englishFont.font
           const fontOptions = {
             familyName: displayFamilyName,
-            styleName: "Regular",
-            unitsPerEm: baseFont.unitsPerEm || 1000,
-            ascender: baseFont.ascender || 800,
-            descender: baseFont.descender || -200,
-            lineGap: (baseFont as { lineGap?: number }).lineGap || 0,
+            styleName: englishFont.names.fontSubfamily?.en || "Regular",
+            unitsPerEm: englishFont.unitsPerEm,
+            ascender: englishFont.ascender,
+            descender: englishFont.descender,
+            lineGap: (englishFont as { lineGap?: number }).lineGap || 0,
             glyphs: glyphsArray,
-            // VSCode 인식을 위한 완전한 이름 정보 (PostScript 표준 준수)
+            // 영문 폰트의 names 테이블을 기반으로 이름만 변경
             names: {
               fontFamily: { en: displayFamilyName },
-              fontSubfamily: { en: "Regular" },
+              fontSubfamily: { en: englishFont.names.fontSubfamily?.en || "Regular" },
               uniqueID: { en: `${postScriptFamilyName}-${Date.now()}` },
-              fullName: { en: `${displayFamilyName} Regular` },
+              fullName: {
+                en: `${displayFamilyName} ${englishFont.names.fontSubfamily?.en || "Regular"}`,
+              },
               postScriptName: { en: postScriptFamilyName },
               preferredFamily: { en: displayFamilyName },
-              preferredSubfamily: { en: "Regular" },
-              version: { en: "1.0" },
-              description: { en: `Merged font: ${displayFamilyName}` },
-              // Windows에서 인식을 위한 추가 메타데이터
-              copyright: { en: `Generated by Hangeul Coding Font Merger` },
-              trademark: { en: displayFamilyName },
-              manufacturer: { en: "Hangeul Coding Font Merger" },
-              designer: { en: "Auto-generated" },
-              vendorURL: { en: "https://github.com" },
-              designerURL: { en: "https://github.com" },
-              license: { en: "Custom merged font" },
-              licenseURL: { en: "https://github.com" }
+              preferredSubfamily: {
+                en:
+                  // @ts-ignore - OpenType.js 타입 정의에서 누락된 속성
+                  englishFont.names.preferredSubfamily?.en ||
+                  englishFont.names.fontSubfamily?.en ||
+                  "Regular",
+              },
+              version: { en: englishFont.names.version?.en || "1.0" },
+              description: {
+                en: englishFont.names.description?.en || `Merged font: ${displayFamilyName}`,
+              },
+              copyright: { en: englishFont.names.copyright?.en || "Custom merged font" },
+              trademark: { en: englishFont.names.trademark?.en || displayFamilyName },
+              manufacturer: {
+                en: englishFont.names.manufacturer?.en || "Hangeul Coding Font Merger",
+              },
+              designer: { en: englishFont.names.designer?.en || "Auto-generated" },
+              // @ts-ignore - OpenType.js 타입 정의에서 누락된 속성
+              vendorURL: { en: englishFont.names.vendorURL?.en || "" },
+              // @ts-ignore - OpenType.js 타입 정의에서 누락된 속성
+              designerURL: { en: englishFont.names.designerURL?.en || "" },
+              license: { en: englishFont.names.license?.en || "Custom merged font" },
+              // @ts-ignore - OpenType.js 타입 정의에서 누락된 속성
+              licenseURL: { en: englishFont.names.licenseURL?.en || "" },
             },
-            // VSCode와 시스템 인식을 위한 OS/2 테이블 설정
-            os2: {
-              usWeightClass: 400, // Regular weight
-              usWidthClass: 5,    // Medium width  
-              fsType: 0,          // Installable embedding
-              panose: [2, 11, 6, 9, 2, 2, 4, 2, 2, 4], // Monospace coding font PANOSE
-              ulUnicodeRange1: 0x00000000, // Basic Latin
-              ulUnicodeRange2: 0x00000000,
-              ulUnicodeRange3: 0x00000000, 
-              ulUnicodeRange4: 0x00000000,
-              ulCodePageRange1: 0x00000001, // Latin 1
-              ulCodePageRange2: 0x00000000,
-              sxHeight: baseFont.ascender ? Math.round(baseFont.ascender * 0.5) : 400,
-              sCapHeight: baseFont.ascender ? Math.round(baseFont.ascender * 0.7) : 600,
-              usDefaultChar: 0,
-              usBreakChar: 32, // space
-              usMaxContext: 0
-            }
+            // 영문 폰트의 OS/2 테이블 설정을 그대로 사용
+            os2: englishFont.tables?.os2
+              ? {
+                  usWeightClass: englishFont.tables.os2.usWeightClass || 400,
+                  usWidthClass: englishFont.tables.os2.usWidthClass || 5,
+                  fsType: englishFont.tables.os2.fsType || 0,
+                  panose: englishFont.tables.os2.panose || [2, 11, 6, 9, 2, 2, 4, 2, 2, 4],
+                  ulUnicodeRange1: englishFont.tables.os2.ulUnicodeRange1 || 0x00000000,
+                  ulUnicodeRange2: englishFont.tables.os2.ulUnicodeRange2 || 0x00000000,
+                  ulUnicodeRange3: englishFont.tables.os2.ulUnicodeRange3 || 0x00000000,
+                  ulUnicodeRange4: englishFont.tables.os2.ulUnicodeRange4 || 0x00000000,
+                  ulCodePageRange1: englishFont.tables.os2.ulCodePageRange1 || 0x00000001,
+                  ulCodePageRange2: englishFont.tables.os2.ulCodePageRange2 || 0x00000000,
+                  sxHeight:
+                    englishFont.tables.os2.sxHeight ||
+                    (englishFont.ascender ? Math.round(englishFont.ascender * 0.5) : 400),
+                  sCapHeight:
+                    englishFont.tables.os2.sCapHeight ||
+                    (englishFont.ascender ? Math.round(englishFont.ascender * 0.7) : 600),
+                  usDefaultChar: englishFont.tables.os2.usDefaultChar || 0,
+                  usBreakChar: englishFont.tables.os2.usBreakChar || 32,
+                  usMaxContext: englishFont.tables.os2.usMaxContext || 0,
+                }
+              : {
+                  usWeightClass: 400,
+                  usWidthClass: 5,
+                  fsType: 0,
+                  panose: [2, 11, 6, 9, 2, 2, 4, 2, 2, 4],
+                  ulUnicodeRange1: 0x00000000,
+                  ulUnicodeRange2: 0x00000000,
+                  ulUnicodeRange3: 0x00000000,
+                  ulUnicodeRange4: 0x00000000,
+                  ulCodePageRange1: 0x00000001,
+                  ulCodePageRange2: 0x00000000,
+                  sxHeight: englishFont.ascender ? Math.round(englishFont.ascender * 0.5) : 400,
+                  sCapHeight: englishFont.ascender ? Math.round(englishFont.ascender * 0.7) : 600,
+                  usDefaultChar: 0,
+                  usBreakChar: 32,
+                  usMaxContext: 0,
+                },
           }
 
           console.log(`Original Korean font size: ${fontState.koreanFont.size}`)
@@ -398,7 +561,7 @@ export const useFontMerger = () => {
             // 오류가 발생하면 더욱 간단한 옵션으로 다시 시도
             if (fontError instanceof Error) {
               console.warn("폰트 생성 오류, 최소 옵션으로 재시도:", fontError.message)
-              
+
               const minimalFontOptions = {
                 familyName: fontName,
                 styleName: "Regular",
@@ -410,7 +573,7 @@ export const useFontMerger = () => {
                   fontFamily: { en: fontName },
                   fontSubfamily: { en: "Regular" },
                   postScriptName: { en: postScriptName },
-                }
+                },
               }
               mergedFont = new Font(minimalFontOptions)
             } else {
@@ -422,18 +585,18 @@ export const useFontMerger = () => {
           const fontBuffer = mergedFont.toArrayBuffer()
           const finalSizeKB = (fontBuffer.byteLength / 1024).toFixed(1)
           const bytesPerGlyph = Math.round(fontBuffer.byteLength / glyphsArray.length)
-          
+
           console.log(`✅ 폰트 생성 완료:`)
           console.log(`   📊 최종 크기: ${finalSizeKB} KB`)
           console.log(`   🔤 글리프 수: ${glyphsArray.length}개`)
           console.log(`   📏 글리프당 크기: ${bytesPerGlyph} bytes`)
-          
+
           // 원본 폰트 대비 크기 비교
-          const koreanSizeKB = parseFloat(fontState.koreanFont.size.replace(/[^0-9.]/g, ''))
-          const englishSizeKB = parseFloat(fontState.englishFont.size.replace(/[^0-9.]/g, ''))
+          const koreanSizeKB = parseFloat(fontState.koreanFont.size.replace(/[^0-9.]/g, ""))
+          const englishSizeKB = parseFloat(fontState.englishFont.size.replace(/[^0-9.]/g, ""))
           const originalTotalKB = koreanSizeKB + englishSizeKB
           const compressionRatio = ((parseFloat(finalSizeKB) / originalTotalKB) * 100).toFixed(1)
-          
+
           console.log(`   📈 원본 합계: ${originalTotalKB.toFixed(1)} KB`)
           console.log(`   📉 압축률: ${compressionRatio}%`)
 
@@ -479,11 +642,12 @@ export const useFontMerger = () => {
               )
 
               // 고급 테이블 정보 없이 새 폰트 생성
-              const safeFontName = fontName.replace(/[^a-zA-Z0-9\-]/g, "")
-              const fallbackPostScriptName = safeFontName.length > 0 ? safeFontName : "HangeulCodingFont"
+              const safeFontName = fontName.replace(/[^a-zA-Z0-9-]/g, "")
+              const fallbackPostScriptName =
+                safeFontName.length > 0 ? safeFontName : "HangeulCodingFont"
               const simpleFontOptions = {
                 familyName: fontName,
-                styleName: "Regular", 
+                styleName: "Regular",
                 unitsPerEm: baseFont.unitsPerEm || 1000,
                 ascender: baseFont.ascender || 800,
                 descender: baseFont.descender || -200,
@@ -495,8 +659,8 @@ export const useFontMerger = () => {
                   fontSubfamily: { en: "Regular" },
                   fullName: { en: `${fontName} Regular` },
                   postScriptName: { en: `${fallbackPostScriptName}-Regular` },
-                  version: { en: "1.0" }
-                }
+                  version: { en: "1.0" },
+                },
               }
 
               const Font = (
@@ -514,28 +678,31 @@ export const useFontMerger = () => {
           if (arrayBuffer && arrayBuffer.byteLength > 1000) {
             const fontBlob = new Blob([arrayBuffer], { type: "font/opentype" })
             const fontUrl = URL.createObjectURL(fontBlob)
-            
+
             // VSCode 인식을 위한 안전한 폰트 이름 생성
-            const safeFontName = fontName.replace(/[^a-zA-Z0-9\-]/g, "")
+            const safeFontName = fontName.replace(/[^a-zA-Z0-9-]/g, "")
             const registrationName = safeFontName.length > 0 ? safeFontName : "HangeulCodingFont"
-            
+
             const fontFace = new FontFace(registrationName, `url(${fontUrl})`, {
-              style: 'normal',
-              weight: '400',
-              stretch: 'normal',
-              unicodeRange: 'U+0020-007E, U+00A0-00FF, U+1100-11FF, U+3130-318F, U+AC00-D7AF, U+A960-A97F, U+E000-F8FF'
+              style: "normal",
+              weight: "400",
+              stretch: "normal",
+              unicodeRange:
+                "U+0020-007E, U+00A0-00FF, U+1100-11FF, U+3130-318F, U+AC00-D7AF, U+A960-A97F, U+E000-F8FF",
             })
 
             await fontFace.load()
             document.fonts.add(fontFace)
-            console.log(`Merged font "${registrationName}" registered successfully for VS Code compatibility`)
-            
+            console.log(
+              `Merged font "${registrationName}" registered successfully for VS Code compatibility`
+            )
+
             // 추가로 원래 이름으로도 등록 (다른 에디터 호환성)
             if (registrationName !== fontName) {
               const alternateFontFace = new FontFace(fontName, `url(${fontUrl})`, {
-                style: 'normal',
-                weight: '400',
-                stretch: 'normal'
+                style: "normal",
+                weight: "400",
+                stretch: "normal",
               })
               await alternateFontFace.load()
               document.fonts.add(alternateFontFace)
@@ -554,19 +721,23 @@ export const useFontMerger = () => {
             const englishFontUrl = URL.createObjectURL(fontState.englishFont.file)
 
             // VSCode 호환성을 위한 안전한 폰트 이름 생성
-            const safeFontName = fontName.replace(/[^a-zA-Z0-9\-]/g, "")
+            const safeFontName = fontName.replace(/[^a-zA-Z0-9-]/g, "")
             const fallbackName = safeFontName.length > 0 ? safeFontName : "HangeulCodingFont"
 
             const koreanFontFace = new FontFace(`${fallbackName}-Korean`, `url(${koreanFontUrl})`, {
-              style: 'normal',
-              weight: '400',
-              unicodeRange: 'U+AC00-D7AF, U+1100-11FF, U+3130-318F, U+A960-A97F'
+              style: "normal",
+              weight: "400",
+              unicodeRange: "U+AC00-D7AF, U+1100-11FF, U+3130-318F, U+A960-A97F",
             })
-            const englishFontFace = new FontFace(`${fallbackName}-English`, `url(${englishFontUrl})`, {
-              style: 'normal',
-              weight: '400',
-              unicodeRange: 'U+0020-007E, U+00A0-00FF, U+2000-206F, U+E000-F8FF'
-            })
+            const englishFontFace = new FontFace(
+              `${fallbackName}-English`,
+              `url(${englishFontUrl})`,
+              {
+                style: "normal",
+                weight: "400",
+                unicodeRange: "U+0020-007E, U+00A0-00FF, U+2000-206F, U+E000-F8FF",
+              }
+            )
 
             await Promise.all([koreanFontFace.load(), englishFontFace.load()])
 
@@ -607,18 +778,18 @@ export const useFontMerger = () => {
         }))
 
         // VSCode 사용을 위한 명확한 안내 메시지
-        const safeFontName = fontName.replace(/[^a-zA-Z0-9\-]/g, "")
+        const safeFontName = fontName.replace(/[^a-zA-Z0-9-]/g, "")
         const displayName = safeFontName.length > 0 ? safeFontName : "HangeulCodingFont"
         const postScriptFamilyName = `${displayName}-Regular`
-        
+
         // 폰트 크기 정보 계산
         const fontBuffer = mergedFont.toArrayBuffer()
         const finalSizeKB = (fontBuffer.byteLength / 1024).toFixed(1)
-        const koreanSizeKB = parseFloat(fontState.koreanFont.size.replace(/[^0-9.]/g, ''))
-        const englishSizeKB = parseFloat(fontState.englishFont.size.replace(/[^0-9.]/g, ''))
+        const koreanSizeKB = parseFloat(fontState.koreanFont.size.replace(/[^0-9.]/g, ""))
+        const englishSizeKB = parseFloat(fontState.englishFont.size.replace(/[^0-9.]/g, ""))
         const originalTotalKB = koreanSizeKB + englishSizeKB
         const compressionRatio = ((parseFloat(finalSizeKB) / originalTotalKB) * 100).toFixed(1)
-        
+
         const successMessage = `
 🎉 폰트 합치기가 완료되었습니다!
 
@@ -655,12 +826,12 @@ export const useFontMerger = () => {
         `.trim()
 
         setSuccess(successMessage)
-        
+
         // 폰트 합치기 완료 시 화면을 가장 밑으로 스크롤
         setTimeout(() => {
           window.scrollTo({
             top: document.documentElement.scrollHeight,
-            behavior: 'smooth'
+            behavior: "smooth",
           })
         }, 300) // 약간의 지연을 주어 UI 업데이트 후 스크롤
       } catch (error) {
@@ -700,10 +871,10 @@ export const useFontMerger = () => {
         const url = URL.createObjectURL(blob)
 
         // VSCode 호환성을 위한 안전한 파일명 생성
-        const safeFontName = fontName.replace(/[^a-zA-Z0-9\-]/g, "")
+        const safeFontName = fontName.replace(/[^a-zA-Z0-9-]/g, "")
         const downloadFileName = safeFontName.length > 0 ? safeFontName : "HangeulCodingFont"
         const postScriptFamilyName = `${downloadFileName}-Regular`
-        
+
         const link = document.createElement("a")
         link.href = url
         link.download = `${downloadFileName}.ttf`
@@ -711,12 +882,12 @@ export const useFontMerger = () => {
         link.click()
         document.body.removeChild(link)
         URL.revokeObjectURL(url)
-        
+
         // VSCode 사용 안내 정보 반환 (메시지 대신)
         return {
           downloadFileName,
           originalFontName: fontName,
-          postScriptFamilyName
+          postScriptFamilyName,
         }
       } catch (error) {
         setError(`다운로드 실패: ${error instanceof Error ? error.message : "Unknown error"}`)
