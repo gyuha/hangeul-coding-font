@@ -1,5 +1,6 @@
 import { type Font, parse } from "opentype.js"
 import { useCallback, useState } from "react"
+import { toast } from "sonner"
 import type { FontInfo, FontState, MergeOptions } from "../types/font"
 
 export const useFontMerger = () => {
@@ -28,8 +29,8 @@ export const useFontMerger = () => {
   }, [])
 
   const setSuccess = useCallback((success: string) => {
-    setFontState((prev) => ({ ...prev, success, error: null }))
-    setTimeout(() => setFontState((prev) => ({ ...prev, success: null })), 5000)
+    toast.success(success)
+    setFontState((prev) => ({ ...prev, success: null, error: null }))
   }, [])
 
   const loadFont = useCallback(

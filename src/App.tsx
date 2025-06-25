@@ -1,5 +1,6 @@
 import { Download, Loader2, Merge } from "lucide-react"
 import { useEffect, useState } from "react"
+import { Toaster } from "sonner"
 import DownloadOverlay from "./components/DownloadOverlay"
 import ErrorDialog from "./components/ErrorDialog"
 import FontPreview from "./components/FontPreview"
@@ -7,7 +8,6 @@ import FontUploader from "./components/FontUploader"
 import GitHubCorner from "./components/GitHubCorner"
 import LoadingOverlay from "./components/LoadingOverlay"
 import MergeOptions from "./components/MergeOptions"
-import { Alert, AlertDescription } from "./components/ui/alert"
 import { Button } from "./components/ui/button"
 import { useFontMerger } from "./hooks/useFontMerger"
 import type { MergeOptions as MergeOptionsType } from "./types/font"
@@ -78,6 +78,7 @@ function App() {
 
   return (
     <>
+      <Toaster position="top-center" />
       <GitHubCorner url="https://github.com/gyuha/hangeul-coding-font" />
       {isDownloading && <DownloadOverlay isVisible={isDownloading} />}
       <LoadingOverlay
@@ -103,12 +104,6 @@ function App() {
             onClose={clearError}
             message={fontState.error || ""}
           />
-
-          {fontState.success && (
-            <Alert className="mb-6 text-green-800 bg-green-50 border-green-200">
-              <AlertDescription>{fontState.success}</AlertDescription>
-            </Alert>
-          )}
 
           {/* Font Upload Section - Split Layout */}
           <div className="mb-6 bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">

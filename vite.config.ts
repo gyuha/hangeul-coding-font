@@ -30,12 +30,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: "0.0.0.0",
-      allowedHosts: [
-        "fe.gyuha.com",
-        "localhost",
-        "127.0.0.1",
-        ".gyuha.com"
-      ]
+      allowedHosts: ["fe.gyuha.com", "localhost", "127.0.0.1", ".gyuha.com"],
     },
     resolve: {
       alias: {

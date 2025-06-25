@@ -1,18 +1,18 @@
+import loremIpsumKR from "lorem-ipsum-kr"
 import { FileText, Upload } from "lucide-react"
 import type React from "react"
 import { useCallback } from "react"
 import { cn } from "../lib/utils"
 import type { FontInfo } from "../types/font"
 import { Button } from "./ui/button"
-import loremIpsumKR from "lorem-ipsum-kr"
 
 const ko = loremIpsumKR({
-    count: 3,
-    units: "sentences", 
-  })
+  count: 3,
+  units: "sentences",
+})
 
 const sampleTexts = {
-  ko  ,
+  ko,
   en: `abcdefghijklmnopqrstuvwxyz
 ABCDEFGHIJKLMNOPQRSTUVWXYZ
 o008 iIlL1 {} [] g9qCGQ ~-+=>`,
