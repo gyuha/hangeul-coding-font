@@ -61,7 +61,8 @@ console.log(greet("개발자"));
 // 한글: 가나다라마바사아자차카타파하
 // 영문: abcdefghijklmnopqrstuvwxyz
 //       ABCDEFGHIJKLMNOPQRSTUVWXYZ
-// 혼동되기 쉬운 문자: o008 iIlL1 {} [] g9qCGQ ~-+=>`
+// 혼동되기 쉬운 문자: o008 iIlL1 {} [] g9qCGQ ~-+=>
+// 아이콘 문자 :      ⇡  3.10.12   `
 
   const sampleTexts = [
     {
@@ -76,7 +77,9 @@ console.log(greet("개발자"));`,
       label: "문자 테스트",
       text: `abcdefghijklmnopqrstuvwxyz
 ABCDEFGHIJKLMNOPQRSTUVWXYZ
-o008 iIlL1 {} [] g9qCGQ ~-+=>`,
+o008 iIlL1 {} [] g9qCGQ ~-+=>
+
+     ⇡  3.10.12   `
     },
     {
       label: "실제 코드",
@@ -105,7 +108,7 @@ export const User: React.FC<Props> = ({ name, age }) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex flex-wrap gap-4 justify-between items-center">
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-600 dark:text-gray-400">샘플 텍스트:</span>
           {sampleTexts.map((sample) => (
@@ -126,7 +129,7 @@ export const User: React.FC<Props> = ({ name, age }) => {
             variant="outline"
             size="sm"
             onClick={() => setFontSize(Math.max(10, fontSize - 2))}
-            className="w-8 h-8 p-0"
+            className="p-0 w-8 h-8"
           >
             -
           </Button>
@@ -135,7 +138,7 @@ export const User: React.FC<Props> = ({ name, age }) => {
             variant="outline"
             size="sm"
             onClick={() => setFontSize(Math.min(24, fontSize + 2))}
-            className="w-8 h-8 p-0"
+            className="p-0 w-8 h-8"
           >
             +
           </Button>
@@ -150,7 +153,7 @@ export const User: React.FC<Props> = ({ name, age }) => {
         </div>
       </div>
 
-      <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 overflow-hidden">
+      <div className="overflow-hidden bg-white rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-900">
         {isEditing ? (
           <Textarea
             value={previewText || defaultPreviewText}
@@ -188,7 +191,7 @@ export const User: React.FC<Props> = ({ name, age }) => {
         )}
       </div>
 
-      <div className="text-xs text-gray-500 dark:text-gray-400 flex justify-between">
+      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
         <span>
           현재 폰트: {fontName || "기본 폰트"} {fontLoaded ? "✓" : "⚠️"}
         </span>
@@ -196,7 +199,7 @@ export const User: React.FC<Props> = ({ name, age }) => {
       </div>
 
       {!fontLoaded && fontName && (
-        <div className="text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded">
+        <div className="p-2 text-xs text-yellow-600 bg-yellow-50 rounded dark:text-yellow-400 dark:bg-yellow-900/20">
           ⚠️ 폰트가 아직 로드되지 않았습니다. 브라우저 콘솔을 확인해주세요.
         </div>
       )}
