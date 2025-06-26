@@ -28,14 +28,25 @@ export const useFontMerger = () => {
       const fontFamilyName = `PreviewFont_${Date.now()}`
       setPreviewFontFamily(fontFamilyName)
 
+      console.log(`Setting up merged font preview: ${fontFamilyName}`)
+      console.log(`Font URL: ${fontUrl.substring(0, 50)}...`)
+
       const style = document.createElement("style")
       style.textContent = `
         @font-face {
           font-family: '${fontFamilyName}';
           src: url('${fontUrl}') format('truetype');
+          font-display: swap;
         }
       `
       document.head.appendChild(style)
+
+      // 폰트 로딩 확인
+      document.fonts.load(`16px "${fontFamilyName}"`).then(() => {
+        console.log(`Merged font loaded successfully: ${fontFamilyName}`)
+      }).catch((error) => {
+        console.error(`Failed to load merged font: ${fontFamilyName}`, error)
+      })
 
       // 이전 스타일 태그 정리
       return () => {
@@ -136,7 +147,7 @@ export const useFontMerger = () => {
     }
   }
 
-  // 유니코드 범위에서 문자 추출 - useFontSubset 패턴 적용
+  // 유니코드 범위에서 문자 추출 - 간단한 패턴으로 복원
   const extractGlyphsFromRange = useCallback(
     (sourceFont: Font, start: number, end: number, rangeDescription = "") => {
       const glyphs = []
@@ -169,8 +180,8 @@ export const useFontMerger = () => {
     try {
       console.log("Starting font merge process...")
 
-      // 모든 글리프를 담을 배열 초기화 (.notdef 글리프부터 시작)
-      const glyphs = [koreanFont.glyphs.get(0) || englishFont.glyphs.get(0)]
+      // useFontSubset 패턴: 간단한 글리프 배열 생성
+      const glyphs = [koreanFont.glyphs.get(0)] // .notdef glyph
       let currentStep = 0
       const totalSteps = Object.values(options).filter(Boolean).length
 
@@ -249,15 +260,18 @@ export const useFontMerger = () => {
 
       setProgress(100)
 
-      // 새로운 폰트 생성 - useFontSubset 패턴 적용
+      // 새로운 폰트 생성 - useFontSubset과 동일한 패턴
       const mergedFont = new opentype.Font({
         familyName: fontName,
-        styleName: "Regular",
-        unitsPerEm: englishFont.unitsPerEm || 1000,
-        ascender: englishFont.ascender || 800,
-        descender: englishFont.descender || -200,
+        styleName: englishFont.names?.fontSubfamily?.en || "Regular",
+        unitsPerEm: englishFont.unitsPerEm,
+        ascender: englishFont.ascender,
+        descender: englishFont.descender,
         glyphs: glyphs,
       })
+      
+      console.log(`Font created with family name: ${fontName}`)
+      console.log(`Total glyphs in merged font: ${glyphs.length}`)
 
       setMergedFont(mergedFont)
 
@@ -271,6 +285,9 @@ export const useFontMerger = () => {
       toast.success(`폰트 합치기가 완료되었습니다! (${finalSizeKB}KB, ${glyphs.length}개 글리프)`)
 
       console.log(`Created merged font with ${glyphs.length} glyphs`)
+      console.log(`Merged font family name: ${fontName}`)
+      console.log(`Font buffer size: ${fontBuffer.byteLength} bytes`)
+      console.log(`Font URL created: ${url.substring(0, 50)}...`)
     } catch (error) {
       setProgress(0)
       throw new Error(
