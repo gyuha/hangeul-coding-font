@@ -1,84 +1,35 @@
 import { saveAs } from "file-saver"
 import * as opentype from "opentype.js"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import type { MergeOptions } from "../types/font"
 
 export const useFontMerger = () => {
+  // Font objects
   const [koreanFont, setKoreanFont] = useState<opentype.Font | null>(null)
   const [englishFont, setEnglishFont] = useState<opentype.Font | null>(null)
+
+  // Font files and names
   const [koreanFontFile, setKoreanFontFile] = useState<File | null>(null)
   const [englishFontFile, setEnglishFontFile] = useState<File | null>(null)
   const [koreanFontName, setKoreanFontName] = useState("")
   const [englishFontName, setEnglishFontName] = useState("")
+
+  // URLs for individual font preview only
   const [koreanFontUrl, setKoreanFontUrl] = useState<string>("")
   const [englishFontUrl, setEnglishFontUrl] = useState<string>("")
+
   const [koreanPreviewFontFamily, setKoreanPreviewFontFamily] = useState<string>("")
   const [englishPreviewFontFamily, setEnglishPreviewFontFamily] = useState<string>("")
-  const [mergedFont, setMergedFont] = useState<opentype.Font | null>(null)
-  const [fontUrl, setFontUrl] = useState<string>("")
-  const [previewFontFamily, setPreviewFontFamily] = useState<string>("")
+
+  // Processing state
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
 
-  // 폰트 URL이 변경될 때마다 CSS font-face 규칙을 동적으로 추가
+  // Korean font preview effect
   useEffect(() => {
-    if (fontUrl && mergedFont) {
-      const fontFamilyName = "MergedFont"
-      setPreviewFontFamily(fontFamilyName)
-
-      console.log(`🎨 Setting up merged font preview: ${fontFamilyName}`)
-      console.log(`📎 Font URL: ${fontUrl.substring(0, 50)}...`)
-
-      const style = document.createElement("style")
-      style.textContent = `
-        @font-face {
-          font-family: '${fontFamilyName}';
-          src: url('${fontUrl}') format('truetype');
-          font-display: swap;
-        }
-      `
-      document.head.appendChild(style)
-      console.log(`📝 Style tag added to document head for: ${fontFamilyName}`)
-
-      // 폰트 로딩 확인 - 더 자세한 로깅
-      setTimeout(() => {
-        document.fonts.load(`16px "${fontFamilyName}"`).then(() => {
-          console.log(`✅ Merged font loaded successfully: ${fontFamilyName}`)
-          
-          // 실제로 사용 가능한지 테스트
-          const testDiv = document.createElement('div')
-          testDiv.style.fontFamily = `"${fontFamilyName}", monospace`
-          testDiv.style.position = 'absolute'
-          testDiv.style.visibility = 'hidden'
-          testDiv.textContent = 'Test 안녕하세요'
-          document.body.appendChild(testDiv)
-          
-          setTimeout(() => {
-            const computedStyle = window.getComputedStyle(testDiv)
-            console.log(`🔍 Computed font-family: ${computedStyle.fontFamily}`)
-            document.body.removeChild(testDiv)
-          }, 100)
-          
-        }).catch((error) => {
-          console.error(`❌ Failed to load merged font: ${fontFamilyName}`, error)
-        })
-      }, 100)
-
-      // 이전 스타일 태그 정리
-      return () => {
-        if (document.head.contains(style)) {
-          document.head.removeChild(style)
-          console.log(`🗑️ Cleaned up style tag for: ${fontFamilyName}`)
-        }
-      }
-    }
-  }, [fontUrl, mergedFont])
-
-  // 한글 폰트 미리보기 URL 생성
-  useEffect(() => {
-    if (koreanFontUrl) {
-      const fontFamilyName = `KoreanPreviewFont_${Date.now()}`
+    if (koreanFontUrl && koreanFont) {
+      const fontFamilyName = `KoreanFont_${Date.now()}`
       setKoreanPreviewFontFamily(fontFamilyName)
 
       const style = document.createElement("style")
@@ -96,12 +47,12 @@ export const useFontMerger = () => {
         }
       }
     }
-  }, [koreanFontUrl])
+  }, [koreanFontUrl, koreanFont])
 
-  // 영문 폰트 미리보기 URL 생성
+  // English font preview effect
   useEffect(() => {
-    if (englishFontUrl) {
-      const fontFamilyName = `EnglishPreviewFont_${Date.now()}`
+    if (englishFontUrl && englishFont) {
+      const fontFamilyName = `EnglishFont_${Date.now()}`
       setEnglishPreviewFontFamily(fontFamilyName)
 
       const style = document.createElement("style")
@@ -119,7 +70,7 @@ export const useFontMerger = () => {
         }
       }
     }
-  }, [englishFontUrl])
+  }, [englishFontUrl, englishFont])
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`
@@ -135,7 +86,6 @@ export const useFontMerger = () => {
       setKoreanFontFile(file)
       setKoreanFontName(file.name)
 
-      // 미리보기를 위한 URL 생성
       const blob = new Blob([arrayBuffer], { type: "font/truetype" })
       const url = URL.createObjectURL(blob)
       setKoreanFontUrl(url)
@@ -154,7 +104,6 @@ export const useFontMerger = () => {
       setEnglishFontFile(file)
       setEnglishFontName(file.name)
 
-      // 미리보기를 위한 URL 생성
       const blob = new Blob([arrayBuffer], { type: "font/truetype" })
       const url = URL.createObjectURL(blob)
       setEnglishFontUrl(url)
@@ -165,30 +114,157 @@ export const useFontMerger = () => {
     }
   }
 
-  // 유니코드 범위에서 문자 추출 - useFontSubset과 동일한 패턴으로 기존 글리프 직접 사용
-  const extractGlyphsFromRange = useCallback(
-    (sourceFont: opentype.Font, start: number, end: number, rangeDescription = "") => {
-      const glyphs = []
-      let addedCount = 0
+  // Get specific glyphs from English font for ligatures and icons
+  const getAllEnglishGlyphs = (
+    font: opentype.Font,
+    includeLigatures: boolean,
+    includeIcons: boolean
+  ): opentype.Glyph[] => {
+    const glyphs: opentype.Glyph[] = []
 
-      for (let i = start; i <= end; i++) {
-        const char = String.fromCharCode(i)
-        const glyph = sourceFont.charToGlyph(char)
-
-        if (glyph && glyph.index !== 0) {
-          // useFontSubset 방식: 기존 글리프를 직접 사용
+    // If including ligatures, add ALL glyphs from the font
+    // This ensures ligature components are included even if they don't have obvious names
+    if (includeLigatures) {
+      console.log("🔗 Including all glyphs for ligature support")
+      for (let i = 1; i < font.glyphs.length; i++) {
+        // Skip .notdef at index 0
+        const glyph = font.glyphs.get(i)
+        if (glyph) {
           glyphs.push(glyph)
-          addedCount++
+        }
+      }
+      return glyphs
+    }
+
+    // Otherwise, include specific ranges for icons only
+    if (includeIcons) {
+      for (let i = 1; i < font.glyphs.length; i++) {
+        const glyph = font.glyphs.get(i)
+        if (glyph && glyph.unicode !== undefined) {
+          const charCode = glyph.unicode
+
+          // NerdFont icon ranges
+          if (
+            (charCode >= 0xe000 && charCode <= 0xf8ff) || // Private Use Area
+            (charCode >= 0xf0000 && charCode <= 0xffffd) || // Supplementary Private Use Area-A
+            (charCode >= 0x100000 && charCode <= 0x10fffd) || // Supplementary Private Use Area-B
+            (charCode >= 0x2190 && charCode <= 0x21ff) || // Arrows
+            (charCode >= 0x2600 && charCode <= 0x26ff) || // Miscellaneous Symbols
+            (charCode >= 0x2700 && charCode <= 0x27bf) || // Dingbats
+            (charCode >= 0x1f300 && charCode <= 0x1f6ff) // Miscellaneous Symbols and Pictographs
+          ) {
+            glyphs.push(glyph)
+          }
+        }
+      }
+    }
+
+    return glyphs
+  }
+
+  // Character selection helper - now handles ligatures and icons properly
+  const getGlyphsFromOptions = (options: MergeOptions): opentype.Glyph[] => {
+    const glyphs: opentype.Glyph[] = []
+    const processedChars = new Set<string>()
+
+    // Handle Korean characters
+    if (options.koreanHangul && koreanFont) {
+      const koreanRanges = [
+        [0x1100, 0x11ff], // 한글 자모
+        [0x3130, 0x318f], // 한글 호환 자모
+        [0xac00, 0xd7af], // 한글 음절
+      ]
+
+      for (const [start, end] of koreanRanges) {
+        for (let i = start; i <= end; i++) {
+          const char = String.fromCharCode(i)
+          const glyph = koreanFont.charToGlyph(char)
+          if (glyph && glyph.index !== 0 && !processedChars.has(char)) {
+            glyphs.push(glyph)
+            processedChars.add(char)
+          }
+        }
+      }
+    }
+
+    // Handle English characters
+    if (englishFont) {
+      // Basic English characters
+      if (options.englishLetters) {
+        const letterRanges = [
+          [0x0041, 0x005a], // A-Z
+          [0x0061, 0x007a], // a-z
+          [0x00c0, 0x00ff], // Latin-1 Supplement
+          [0x0100, 0x017f], // Latin Extended-A
+        ]
+
+        for (const [start, end] of letterRanges) {
+          for (let i = start; i <= end; i++) {
+            const char = String.fromCharCode(i)
+            const glyph = englishFont.charToGlyph(char)
+            if (glyph && glyph.index !== 0 && !processedChars.has(char)) {
+              glyphs.push(glyph)
+              processedChars.add(char)
+            }
+          }
         }
       }
 
-      console.log(`${rangeDescription}: ${addedCount} glyphs extracted`)
-      return glyphs
-    },
-    []
-  )
+      // Numbers
+      if (options.englishNumbers) {
+        for (let i = 0x0030; i <= 0x0039; i++) {
+          const char = String.fromCharCode(i)
+          const glyph = englishFont.charToGlyph(char)
+          if (glyph && glyph.index !== 0 && !processedChars.has(char)) {
+            glyphs.push(glyph)
+            processedChars.add(char)
+          }
+        }
+      }
 
-  const mergeFonts = async (options: MergeOptions, fontName: string) => {
+      // Symbols
+      if (options.englishSymbols) {
+        const symbolRanges = [
+          [0x0020, 0x002f], // ASCII symbols
+          [0x003a, 0x0040],
+          [0x005b, 0x0060],
+          [0x007b, 0x007e],
+          [0x2000, 0x206f], // General punctuation
+        ]
+
+        for (const [start, end] of symbolRanges) {
+          for (let i = start; i <= end; i++) {
+            const char = String.fromCharCode(i)
+            const glyph = englishFont.charToGlyph(char)
+            if (glyph && glyph.index !== 0 && !processedChars.has(char)) {
+              glyphs.push(glyph)
+              processedChars.add(char)
+            }
+          }
+        }
+      }
+
+      // Add all ligature and icon glyphs
+      if (options.englishLigatures || options.englishIcons) {
+        const specialGlyphs = getAllEnglishGlyphs(
+          englishFont,
+          options.englishLigatures,
+          options.englishIcons
+        )
+        for (const glyph of specialGlyphs) {
+          // Avoid duplicates by checking glyph index
+          if (!glyphs.some((g) => g.index === glyph.index)) {
+            glyphs.push(glyph)
+          }
+        }
+      }
+    }
+
+    return glyphs
+  }
+
+  // Direct merge and download function - no preview
+  const mergeAndDownloadFont = async (options: MergeOptions, fontName: string) => {
     if (!koreanFont || !englishFont) {
       throw new Error("두 폰트 모두 업로드해주세요.")
     }
@@ -197,73 +273,68 @@ export const useFontMerger = () => {
     setProgress(0)
 
     try {
-      console.log("🚀 Starting font merge process with simpler approach...")
+      // Get all glyphs to include (including ligatures and icons)
+      const allGlyphs = getGlyphsFromOptions(options)
+      console.log(`Processing ${allGlyphs.length} glyphs`)
 
-      // 더 간단한 접근: 영문폰트를 기본으로 하고 한글 글리프만 추가
-      const baseFont = englishFont
-      const selectedText = buildSelectedText(options)
-      
-      console.log(`📝 Selected characters: ${selectedText.substring(0, 50)}...`)
-      
-      const uniqueChars = Array.from(new Set(selectedText.split("")))
-      console.log(`🔤 Unique characters count: ${uniqueChars.length}`)
-      
-      // useFontSubset과 완전히 동일한 방식
-      const glyphs = [baseFont.glyphs.get(0)] // .notdef glyph
-      
-      setProgress(50)
-      
-      // 각 문자에 대해 적절한 폰트에서 글리프 찾기
-      uniqueChars.forEach((char) => {
-        const charCode = char.charCodeAt(0)
-        let glyph = null
-        
-        // 한글 범위는 한글폰트에서, 나머지는 영문폰트에서
-        if (charCode >= 0x1100 && charCode <= 0xd7af) {
-          // 한글 범위
-          glyph = koreanFont.charToGlyph(char)
-        } else {
-          // 영문/기호 범위
-          glyph = englishFont.charToGlyph(char)
-        }
-        
+      // Start with .notdef glyph
+      const glyphs = [englishFont.glyphs.get(0)]
+
+      setProgress(25)
+
+      // Add all collected glyphs
+      allGlyphs.forEach((glyph, index) => {
         if (glyph && glyph.index !== 0) {
-          glyphs.push(glyph)
+          // Avoid duplicates by checking if glyph with same index already exists
+          if (!glyphs.some((g) => g.index === glyph.index)) {
+            glyphs.push(glyph)
+          }
+        }
+
+        // Update progress
+        if (index % 100 === 0) {
+          setProgress(25 + (index / allGlyphs.length) * 50)
         }
       })
+
+      setProgress(75)
+
+      // Create merged font
+      const safeFontName = fontName.replace(/[^a-zA-Z0-9-]/g, "") || "HangeulCodingFont"
+
+      const mergedFont = new opentype.Font({
+        familyName: safeFontName,
+        styleName: englishFont.names?.fontSubfamily?.en || "Regular",
+        unitsPerEm: englishFont.unitsPerEm,
+        ascender: englishFont.ascender,
+        descender: englishFont.descender,
+        glyphs: glyphs,
+      })
+
+      // Note: Advanced typography tables (GSUB, GPOS, GDEF) are not copied
+      // due to OpenType.js limitations with complex ligature formats.
+      // The merged font will contain all glyphs but may not have advanced
+      // ligature substitution rules. This is a known limitation of opentype.js.
+      if (options.englishLigatures || options.englishIcons) {
+        console.log(
+          "ℹ️ Ligature and icon glyphs included, but advanced substitution rules may not be preserved"
+        )
+        console.log("ℹ️ This is due to OpenType.js limitations with complex GSUB table formats")
+      }
+
+      setProgress(90)
+
+      // Direct download
+      const fontBuffer = mergedFont.toArrayBuffer()
+      const blob = new Blob([fontBuffer], { type: "font/truetype" })
+      saveAs(blob, `${safeFontName}.ttf`)
 
       setProgress(100)
 
-      // useFontSubset과 완전히 동일한 폰트 생성 방식
-      const safeFontName = "MergedFont"
-      
-      console.log(`🔧 Creating font with ${glyphs.length} glyphs (useFontSubset style)`)
-      
-      const mergedFont = new opentype.Font({
-        familyName: safeFontName,
-        styleName: baseFont.names?.fontSubfamily?.en || "Regular",
-        unitsPerEm: baseFont.unitsPerEm,
-        ascender: baseFont.ascender,
-        descender: baseFont.descender,
-        glyphs: glyphs,
-      })
-      
-      console.log(`✅ Font created successfully: ${safeFontName}`)
-
-      setMergedFont(mergedFont)
-
-      // 폰트 URL 생성
-      const fontBuffer = mergedFont.toArrayBuffer()
-      const blob = new Blob([fontBuffer], { type: "font/truetype" })
-      const url = URL.createObjectURL(blob)
-      setFontUrl(url)
-      
       const finalSizeKB = (fontBuffer.byteLength / 1024).toFixed(1)
-      toast.success(`폰트 합치기가 완료되었습니다! (${finalSizeKB}KB, ${glyphs.length}개 글리프)`)
-      
-      console.log(`📦 Font buffer: ${fontBuffer.byteLength} bytes`)
-      console.log(`🔗 Font URL: ${url.substring(0, 50)}...`)
-      
+      toast.success(
+        `폰트 다운로드가 완료되었습니다! (${safeFontName}.ttf, ${finalSizeKB}KB, ${glyphs.length}개 글리프)`
+      )
     } catch (error) {
       setProgress(0)
       throw new Error(
@@ -274,52 +345,6 @@ export const useFontMerger = () => {
     }
   }
 
-  // 선택된 옵션에 따라 텍스트 생성
-  const buildSelectedText = (options: MergeOptions): string => {
-    let text = ""
-    
-    if (options.koreanHangul) {
-      // 기본 한글 문자들
-      text += "가나다라마바사아자차카타파하"
-      text += "안녕하세요"
-    }
-    
-    if (options.englishLetters) {
-      text += "abcdefghijklmnopqrstuvwxyz"
-      text += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    }
-    
-    if (options.englishNumbers) {
-      text += "0123456789"
-    }
-    
-    if (options.englishSymbols) {
-      text += "!@#$%^&*()_+-=[]{}|;':\",./<>?"
-    }
-    
-    return text
-  }
-
-  const downloadFont = async (fileName: string) => {
-    if (!mergedFont) {
-      throw new Error("먼저 폰트를 합쳐주세요.")
-    }
-
-    try {
-      // useFontSubset 스타일의 단순한 다운로드 로직
-      const fontBuffer = mergedFont.toArrayBuffer()
-      const blob = new Blob([fontBuffer], { type: "font/truetype" })
-      const safeFontName = fileName.replace(/[^a-zA-Z0-9-]/g, "") || "HangeulCodingFont"
-
-      saveAs(blob, `${safeFontName}.ttf`)
-
-      const sizeKB = (fontBuffer.byteLength / 1024).toFixed(1)
-      toast.success(`폰트 다운로드가 완료되었습니다! (${safeFontName}.ttf, ${sizeKB}KB)`)
-    } catch (error) {
-      throw new Error(`다운로드 실패: ${error instanceof Error ? error.message : "Unknown error"}`)
-    }
-  }
-
   const resetFonts = () => {
     setKoreanFont(null)
     setEnglishFont(null)
@@ -327,17 +352,11 @@ export const useFontMerger = () => {
     setEnglishFontFile(null)
     setKoreanFontName("")
     setEnglishFontName("")
-    setMergedFont(null)
-    setPreviewFontFamily("")
     setKoreanPreviewFontFamily("")
     setEnglishPreviewFontFamily("")
     setProgress(0)
 
-    // URL 정리
-    if (fontUrl) {
-      URL.revokeObjectURL(fontUrl)
-      setFontUrl("")
-    }
+    // Clean up URLs
     if (koreanFontUrl) {
       URL.revokeObjectURL(koreanFontUrl)
       setKoreanFontUrl("")
@@ -349,8 +368,11 @@ export const useFontMerger = () => {
   }
 
   return {
+    // Font objects
     koreanFont,
     englishFont,
+
+    // Font info objects
     koreanFontInfo:
       koreanFont && koreanFontFile
         ? {
@@ -369,16 +391,19 @@ export const useFontMerger = () => {
             size: formatFileSize(englishFontFile.size),
           }
         : null,
+
+    // Font names and preview families (individual fonts only)
     koreanFontName,
     englishFontName,
-    mergedFont,
-    previewFontFamily,
+
+    // Processing state
     isProcessing,
     progress,
+
+    // Functions
     handleKoreanFontUpload,
     handleEnglishFontUpload,
-    mergeFonts,
-    downloadFont,
+    mergeAndDownloadFont, // Renamed from mergeFonts
     resetFonts,
   }
 }

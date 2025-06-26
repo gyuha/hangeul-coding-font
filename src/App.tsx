@@ -1,8 +1,7 @@
-import { Download, Loader2, Merge } from "lucide-react"
+import { Download, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Toaster } from "sonner"
 import DownloadOverlay from "./components/DownloadOverlay"
-import FontPreview from "./components/FontPreview"
 import FontUploader from "./components/FontUploader"
 import GitHubCorner from "./components/GitHubCorner"
 import LoadingOverlay from "./components/LoadingOverlay"
@@ -19,14 +18,11 @@ function App() {
     koreanFontInfo,
     englishFontInfo,
     englishFontName,
-    mergedFont,
-    previewFontFamily,
     isProcessing,
     progress,
     handleKoreanFontUpload,
     handleEnglishFontUpload,
-    mergeFonts,
-    downloadFont,
+    mergeAndDownloadFont,
   } = useFontMerger()
 
   const [mergeOptions, setMergeOptions] = useState<MergeOptionsType>({
@@ -42,9 +38,7 @@ function App() {
   })
 
   const [fontName, setFontName] = useState("")
-  const [mergedFontName, setMergedFontName] = useState("")
   const [isFontNameEdited, setIsFontNameEdited] = useState(false)
-  const [previewText, setPreviewText] = useState("")
   const [isDownloading, setIsDownloading] = useState(false)
   const [downloadInfo, setDownloadInfo] = useState<{
     downloadFileName: string
@@ -53,7 +47,6 @@ function App() {
   } | null>(null)
 
   const canMerge = koreanFont && englishFont && !isProcessing
-  const canDownload = mergedFont && !isProcessing
 
   useEffect(() => {
     if (englishFontName && !isFontNameEdited) {
@@ -66,31 +59,22 @@ function App() {
     setIsFontNameEdited(true)
   }
 
-  const handleMerge = async () => {
-    try {
-      await mergeFonts(mergeOptions, fontName)
-      setMergedFontName(fontName) // 합치기 완료 후 미리보기용 폰트 이름 설정
-    } catch (error) {
-      console.error("Merge failed:", error)
-    }
-  }
-
-  const handleDownload = async () => {
+  const handleMergeAndDownload = async () => {
     setIsDownloading(true)
 
     // UI 업데이트를 위해 잠시 대기
     await new Promise((resolve) => setTimeout(resolve, 100))
 
     try {
-      // 다운로드 처리를 비동기로 실행
-      await downloadFont(fontName)
+      // 직접 다운로드 처리
+      await mergeAndDownloadFont(mergeOptions, fontName)
       setDownloadInfo({
         downloadFileName: fontName.replace(/[^a-zA-Z0-9-]/g, "") || "HangeulCodingFont",
         originalFontName: fontName,
         postScriptFamilyName: `${fontName.replace(/[^a-zA-Z0-9-]/g, "")}-Regular`,
       })
     } catch (error) {
-      console.error("Download failed:", error)
+      console.error("Merge and download failed:", error)
     } finally {
       // 다운로드 완료 후 스피너 숨기기
       setTimeout(() => setIsDownloading(false), 800)
@@ -164,13 +148,13 @@ function App() {
                   onOptionsChange={setMergeOptions}
                   fontName={fontName}
                   onFontNameChange={handleFontNameChange}
-                  showFontNameWarning={!!mergedFont && fontName !== mergedFontName}
+                  showFontNameWarning={false}
                 />
 
                 {/* Action Buttons */}
                 <div className="flex justify-center mt-6">
                   <Button
-                    onClick={handleMerge}
+                    onClick={handleMergeAndDownload}
                     disabled={!canMerge}
                     size="lg"
                     className="min-w-[200px] h-12 text-lg"
@@ -178,12 +162,12 @@ function App() {
                     {isProcessing ? (
                       <>
                         <Loader2 className="mr-2 w-5 h-5 animate-spin" />
-                        합치는 중...
+                        처리 중...
                       </>
                     ) : (
                       <>
-                        <Merge className="mr-2 w-5 h-5 rotate-180" />
-                        폰트 합치기
+                        <Download className="mr-2 w-5 h-5" />
+                        폰트 합치고 다운로드
                       </>
                     )}
                   </Button>
@@ -192,40 +176,15 @@ function App() {
             </div>
           )}
 
-          {/* Preview Section */}
-          {mergedFont && (
+          {/* VSCode Guide - 다운로드 후 표시 */}
+          {downloadInfo && (
             <div className="mb-6 bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">
               <div className="p-6">
-                <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
-                  3. 미리보기
-                </h2>
-                <FontPreview
-                  fontName={previewFontFamily || mergedFontName}
-                  previewText={previewText}
-                  onPreviewTextChange={setPreviewText}
+                <VSCodeGuide
+                  downloadFileName={downloadInfo.downloadFileName}
+                  originalFontName={downloadInfo.originalFontName}
+                  postScriptFamilyName={downloadInfo.postScriptFamilyName}
                 />
-
-                {/* Download Button */}
-                <div className="flex justify-center mt-6">
-                  <Button
-                    onClick={handleDownload}
-                    disabled={!canDownload}
-                    size="lg"
-                    className="min-w-[200px] h-12 text-lg"
-                  >
-                    <Download className="mr-2 w-5 h-5" />
-                    다운로드
-                  </Button>
-                </div>
-
-                {/* VSCode Guide - 다운로드 버튼 밑에 표시 */}
-                {downloadInfo && (
-                  <VSCodeGuide
-                    downloadFileName={downloadInfo.downloadFileName}
-                    originalFontName={downloadInfo.originalFontName}
-                    postScriptFamilyName={downloadInfo.postScriptFamilyName}
-                  />
-                )}
               </div>
             </div>
           )}

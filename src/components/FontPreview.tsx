@@ -36,41 +36,42 @@ const FontPreview: React.FC<FontPreviewProps> = ({
       if (fontName) {
         try {
           console.log(`Checking font load for: "${fontName}"`)
-          
+
           // 폰트 로드 시도
           await document.fonts.load(`16px "${fontName}"`)
-          
+
           // 여러 방법으로 폰트 로딩 확인
           let isFontAvailable = false
-          
+
           // 방법 1: document.fonts API 사용
           const fontFaces = Array.from(document.fonts.values())
           isFontAvailable = fontFaces.some((font) => font.family === fontName)
-          
+
           // 방법 2: 동적으로 추가된 style 태그 확인
           if (!isFontAvailable) {
-            const styleTags = document.querySelectorAll('style')
+            const styleTags = document.querySelectorAll("style")
             for (const style of styleTags) {
-              if (style.textContent && (
-                style.textContent.includes(`font-family: '${fontName}'`) ||
-                style.textContent.includes(`font-family: "${fontName}"`)
-              )) {
+              if (
+                style.textContent &&
+                (style.textContent.includes(`font-family: '${fontName}'`) ||
+                  style.textContent.includes(`font-family: "${fontName}"`))
+              ) {
                 isFontAvailable = true
                 console.log(`✅ Font found in style tag: ${fontName}`)
                 break
               }
             }
           }
-          
+
           // 방법 3: 폰트가 실제로 적용되는지 테스트
           if (!isFontAvailable) {
-            const testElement = document.createElement('div')
+            const testElement = document.createElement("div")
             testElement.style.fontFamily = `"${fontName}", monospace`
-            testElement.style.position = 'absolute'
-            testElement.style.visibility = 'hidden'
-            testElement.textContent = 'Test'
+            testElement.style.position = "absolute"
+            testElement.style.visibility = "hidden"
+            testElement.textContent = "Test"
             document.body.appendChild(testElement)
-            
+
             // 잠시 후 폰트가 적용되었는지 확인
             setTimeout(() => {
               const computedStyle = window.getComputedStyle(testElement)
@@ -78,18 +79,22 @@ const FontPreview: React.FC<FontPreviewProps> = ({
               isFontAvailable = actualFontFamily.includes(fontName)
               document.body.removeChild(testElement)
               setFontLoaded(isFontAvailable)
-              console.log(`Font test result for "${fontName}":`, isFontAvailable, `Actual: ${actualFontFamily}`)
+              console.log(
+                `Font test result for "${fontName}":`,
+                isFontAvailable,
+                `Actual: ${actualFontFamily}`
+              )
             }, 500)
           } else {
             setFontLoaded(isFontAvailable)
           }
-          
+
           console.log(`Font "${fontName}" loaded:`, isFontAvailable)
         } catch (error) {
           console.warn("Font load check failed:", error)
-          
+
           // 오류가 발생해도 스타일 태그 존재 여부로 최종 확인
-          const styleTags = document.querySelectorAll('style')
+          const styleTags = document.querySelectorAll("style")
           let foundInStyles = false
           for (const style of styleTags) {
             if (style.textContent && style.textContent.includes(`font-family: '${fontName}'`)) {
