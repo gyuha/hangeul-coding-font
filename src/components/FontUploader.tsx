@@ -15,7 +15,8 @@ const sampleTexts = {
   ko,
   en: `abcdefghijklmnopqrstuvwxyz
 ABCDEFGHIJKLMNOPQRSTUVWXYZ
-o008 iIlL1 {} [] g9qCGQ ~-+=>`,
+o008 iIlL1 {} [] g9qCGQ ~-+=>
+     ⇡    `,
 }
 
 interface FontUploaderProps {
