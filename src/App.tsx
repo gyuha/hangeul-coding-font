@@ -66,17 +66,10 @@ function App() {
 
     try {
       // 다운로드 처리를 비동기로 실행
-      await new Promise<void>((resolve, reject) => {
-        try {
-          const result = downloadFont(fontName)
-          if (result) {
-            setDownloadInfo(result)
-          }
-          resolve()
-        } catch (error) {
-          reject(error)
-        }
-      })
+      const result = await downloadFont(fontName)
+      if (result) {
+        setDownloadInfo(result)
+      }
     } catch (error) {
       console.error("Download failed:", error)
     } finally {

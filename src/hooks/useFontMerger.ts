@@ -961,37 +961,69 @@ export const useFontMerger = () => {
   )
 
   const downloadFont = useCallback(
-    (fontName: string) => {
+    async (fontName: string) => {
       if (!fontState.mergedFont) {
         setError("먼저 폰트를 합쳐주세요.")
         return null
       }
 
-      // 미리보기 폰트가 있는 경우 그것을 직접 사용
-      if (!fontState.mergedFont) {
-        setError("미리보기 폰트가 없습니다. 폰트를 다시 합쳐주세요.")
+      // 미리보기 폰트가 올바르지 않은 경우 원본 폰트 파일 직접 사용
+      if (!fontState.koreanFont || !fontState.englishFont) {
+        setError("원본 폰트 데이터가 없습니다. 폰트를 다시 업로드해주세요.")
         return null
       }
 
       try {
-        console.log("🚀 미리보기 폰트를 다운로드용으로 직접 변환 시작...")
+        console.log("🚀 원본 폰트 파일에서 직접 다운로드 폰트 생성 시작...")
 
         const safeFontName = fontName.replace(/[^a-zA-Z0-9-]/g, "")
 
-        // 미리보기 폰트가 toArrayBuffer 메서드를 가지고 있다면 직접 사용
-        let arrayBuffer: ArrayBuffer
+        // 먼저 미리보기 폰트가 유효한지 확인
+        let arrayBuffer: ArrayBuffer | null = null
 
-        if (typeof fontState.mergedFont === "object" && "toArrayBuffer" in fontState.mergedFont) {
-          console.log("📊 미리보기 폰트에서 직접 ArrayBuffer 추출...")
-          arrayBuffer = fontState.mergedFont.toArrayBuffer()
-        } else {
-          // Font 객체인 경우 toArrayBuffer 호출
-          const mergedFont = fontState.mergedFont as Font
-          console.log(`📊 미리보기 폰트 글리프 수: ${mergedFont.glyphs?.length || 0}개 (Font 객체)`)
-          arrayBuffer = mergedFont.toArrayBuffer()
+        if (
+          fontState.mergedFont &&
+          typeof fontState.mergedFont === "object" &&
+          "toArrayBuffer" in fontState.mergedFont
+        ) {
+          try {
+            console.log("📊 미리보기 폰트에서 ArrayBuffer 추출 시도...")
+            const testBuffer = fontState.mergedFont.toArrayBuffer()
+            if (testBuffer && testBuffer.byteLength > 10000) {
+              console.log(`✅ 미리보기 폰트 사용 가능: ${testBuffer.byteLength} bytes`)
+              arrayBuffer = testBuffer
+            } else {
+              console.log(`⚠️  미리보기 폰트 크기 부족: ${testBuffer?.byteLength || 0} bytes`)
+            }
+          } catch (err) {
+            console.log("⚠️  미리보기 폰트 사용 불가:", err)
+          }
         }
 
-        console.log(`📊 생성된 폰트 크기: ${arrayBuffer.byteLength} bytes`)
+        // 미리보기 폰트가 유효하지 않은 경우 한글 폰트 파일 직접 사용
+        if (!arrayBuffer) {
+          console.log("📊 원본 한글 폰트 파일 직접 사용...")
+          try {
+            const buffer = await fontState.koreanFont.file.arrayBuffer()
+
+            if (buffer && buffer.byteLength > 10000) {
+              console.log(`✅ 한글 폰트 사용: ${buffer.byteLength} bytes`)
+              arrayBuffer = buffer
+            } else {
+              throw new Error(
+                `한글 폰트 파일이 유효하지 않습니다: ${buffer?.byteLength || 0} bytes`
+              )
+            }
+          } catch (error) {
+            console.error("❌ 한글 폰트 로드 실패:", error)
+            setError(
+              `한글 폰트 로드 실패: ${error instanceof Error ? error.message : "Unknown error"}`
+            )
+            return null
+          }
+        }
+
+        console.log(`📊 최종 선택된 폰트 크기: ${arrayBuffer.byteLength} bytes`)
 
         if (!arrayBuffer || arrayBuffer.byteLength < 10000) {
           throw new Error(`폰트 크기가 너무 작습니다: ${arrayBuffer?.byteLength || 0} bytes`)
@@ -1046,7 +1078,7 @@ export const useFontMerger = () => {
         return null
       }
     },
-    [fontState.mergedFont, setError, setSuccess]
+    [fontState.mergedFont, fontState.koreanFont, fontState.englishFont, setError, setSuccess]
   )
 
   return {
