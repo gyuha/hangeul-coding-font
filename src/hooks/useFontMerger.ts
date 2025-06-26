@@ -1062,8 +1062,47 @@ export const useFontMerger = () => {
           }
         }
 
-        // 추가 한글 수집 (더 많은 문자)
-        for (let unicode = 0xac00; unicode <= 0xac0f && koreanCount < 100; unicode++) {
+        // 한글 전체 음절 수집 (0xAC00-0xD7AF, 11,172개)
+        console.log("📝 한글 전체 음절 범위 수집 중...")
+        const maxKoreanGlyphs = 1000 // 성능을 위해 최대 1000개로 제한
+
+        for (let unicode = 0xac00; unicode <= 0xd7af && koreanCount < maxKoreanGlyphs; unicode++) {
+          if (!unicodeSet.has(unicode)) {
+            const glyphIndex = fontState.koreanFont.font.charToGlyphIndex(
+              String.fromCharCode(unicode)
+            )
+            if (glyphIndex > 0) {
+              const originalGlyph = fontState.koreanFont.font.glyphs.get(glyphIndex)
+              if (originalGlyph?.path?.commands?.length > 0) {
+                try {
+                  const newGlyph = new Glyph({
+                    name:
+                      originalGlyph.name ||
+                      `uni${unicode.toString(16).toUpperCase().padStart(4, "0")}`,
+                    unicode: unicode,
+                    advanceWidth: originalGlyph.advanceWidth || 1000,
+                    path: originalGlyph.path,
+                    index: downloadGlyphs.length,
+                  }) as unknown
+                  downloadGlyphs.push(newGlyph)
+                  unicodeSet.add(unicode)
+                  koreanCount++
+
+                  // 100개마다 진행 상황 로그
+                  if (koreanCount % 100 === 0) {
+                    console.log(`📊 한글 글리프 수집 진행: ${koreanCount}개`)
+                  }
+                } catch (glyphError) {
+                  console.warn(`한글 글리프 생성 실패 (U+${unicode.toString(16)}):`, glyphError)
+                }
+              }
+            }
+          }
+        }
+
+        // 한글 자모 추가 (0x1100-0x11FF, 0x3130-0x318F)
+        console.log("📝 한글 자모 수집 중...")
+        for (let unicode = 0x1100; unicode <= 0x11ff && koreanCount < maxKoreanGlyphs; unicode++) {
           if (!unicodeSet.has(unicode)) {
             const glyphIndex = fontState.koreanFont.font.charToGlyphIndex(
               String.fromCharCode(unicode)
@@ -1085,7 +1124,36 @@ export const useFontMerger = () => {
                   unicodeSet.add(unicode)
                   koreanCount++
                 } catch (glyphError) {
-                  console.warn(`한글 글리프 생성 실패 (U+${unicode.toString(16)}):`, glyphError)
+                  console.warn(`한글 자모 생성 실패 (U+${unicode.toString(16)}):`, glyphError)
+                }
+              }
+            }
+          }
+        }
+
+        for (let unicode = 0x3130; unicode <= 0x318f && koreanCount < maxKoreanGlyphs; unicode++) {
+          if (!unicodeSet.has(unicode)) {
+            const glyphIndex = fontState.koreanFont.font.charToGlyphIndex(
+              String.fromCharCode(unicode)
+            )
+            if (glyphIndex > 0) {
+              const originalGlyph = fontState.koreanFont.font.glyphs.get(glyphIndex)
+              if (originalGlyph?.path?.commands?.length > 0) {
+                try {
+                  const newGlyph = new Glyph({
+                    name:
+                      originalGlyph.name ||
+                      `uni${unicode.toString(16).toUpperCase().padStart(4, "0")}`,
+                    unicode: unicode,
+                    advanceWidth: originalGlyph.advanceWidth || 1000,
+                    path: originalGlyph.path,
+                    index: downloadGlyphs.length,
+                  }) as unknown
+                  downloadGlyphs.push(newGlyph)
+                  unicodeSet.add(unicode)
+                  koreanCount++
+                } catch (glyphError) {
+                  console.warn(`한글 호환 자모 생성 실패 (U+${unicode.toString(16)}):`, glyphError)
                 }
               }
             }
