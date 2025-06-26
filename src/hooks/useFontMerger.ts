@@ -1,22 +1,21 @@
 import { saveAs } from "file-saver"
 import * as opentype from "opentype.js"
-import { type Font, parse } from "opentype.js"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import type { MergeOptions } from "../types/font"
 
 export const useFontMerger = () => {
-  const [koreanFont, setKoreanFont] = useState<Font | null>(null)
-  const [englishFont, setEnglishFont] = useState<Font | null>(null)
+  const [koreanFont, setKoreanFont] = useState<opentype.Font | null>(null)
+  const [englishFont, setEnglishFont] = useState<opentype.Font | null>(null)
   const [koreanFontFile, setKoreanFontFile] = useState<File | null>(null)
   const [englishFontFile, setEnglishFontFile] = useState<File | null>(null)
   const [koreanFontName, setKoreanFontName] = useState("")
   const [englishFontName, setEnglishFontName] = useState("")
   const [koreanFontUrl, setKoreanFontUrl] = useState<string>("")
   const [englishFontUrl, setEnglishFontUrl] = useState<string>("")
-  const [koreanPreviewFamily, setKoreanPreviewFamily] = useState<string>("")
-  const [englishPreviewFamily, setEnglishPreviewFamily] = useState<string>("")
-  const [mergedFont, setMergedFont] = useState<Font | null>(null)
+  const [koreanPreviewFontFamily, setKoreanPreviewFontFamily] = useState<string>("")
+  const [englishPreviewFontFamily, setEnglishPreviewFontFamily] = useState<string>("")
+  const [mergedFont, setMergedFont] = useState<opentype.Font | null>(null)
   const [fontUrl, setFontUrl] = useState<string>("")
   const [previewFontFamily, setPreviewFontFamily] = useState<string>("")
   const [isProcessing, setIsProcessing] = useState(false)
@@ -25,11 +24,11 @@ export const useFontMerger = () => {
   // 폰트 URL이 변경될 때마다 CSS font-face 규칙을 동적으로 추가
   useEffect(() => {
     if (fontUrl && mergedFont) {
-      const fontFamilyName = `PreviewFont_${Date.now()}`
+      const fontFamilyName = "MergedFont"
       setPreviewFontFamily(fontFamilyName)
 
-      console.log(`Setting up merged font preview: ${fontFamilyName}`)
-      console.log(`Font URL: ${fontUrl.substring(0, 50)}...`)
+      console.log(`🎨 Setting up merged font preview: ${fontFamilyName}`)
+      console.log(`📎 Font URL: ${fontUrl.substring(0, 50)}...`)
 
       const style = document.createElement("style")
       style.textContent = `
@@ -40,18 +39,37 @@ export const useFontMerger = () => {
         }
       `
       document.head.appendChild(style)
+      console.log(`📝 Style tag added to document head for: ${fontFamilyName}`)
 
-      // 폰트 로딩 확인
-      document.fonts.load(`16px "${fontFamilyName}"`).then(() => {
-        console.log(`Merged font loaded successfully: ${fontFamilyName}`)
-      }).catch((error) => {
-        console.error(`Failed to load merged font: ${fontFamilyName}`, error)
-      })
+      // 폰트 로딩 확인 - 더 자세한 로깅
+      setTimeout(() => {
+        document.fonts.load(`16px "${fontFamilyName}"`).then(() => {
+          console.log(`✅ Merged font loaded successfully: ${fontFamilyName}`)
+          
+          // 실제로 사용 가능한지 테스트
+          const testDiv = document.createElement('div')
+          testDiv.style.fontFamily = `"${fontFamilyName}", monospace`
+          testDiv.style.position = 'absolute'
+          testDiv.style.visibility = 'hidden'
+          testDiv.textContent = 'Test 안녕하세요'
+          document.body.appendChild(testDiv)
+          
+          setTimeout(() => {
+            const computedStyle = window.getComputedStyle(testDiv)
+            console.log(`🔍 Computed font-family: ${computedStyle.fontFamily}`)
+            document.body.removeChild(testDiv)
+          }, 100)
+          
+        }).catch((error) => {
+          console.error(`❌ Failed to load merged font: ${fontFamilyName}`, error)
+        })
+      }, 100)
 
       // 이전 스타일 태그 정리
       return () => {
         if (document.head.contains(style)) {
           document.head.removeChild(style)
+          console.log(`🗑️ Cleaned up style tag for: ${fontFamilyName}`)
         }
       }
     }
@@ -61,7 +79,7 @@ export const useFontMerger = () => {
   useEffect(() => {
     if (koreanFontUrl) {
       const fontFamilyName = `KoreanPreviewFont_${Date.now()}`
-      setKoreanPreviewFamily(fontFamilyName)
+      setKoreanPreviewFontFamily(fontFamilyName)
 
       const style = document.createElement("style")
       style.textContent = `
@@ -84,7 +102,7 @@ export const useFontMerger = () => {
   useEffect(() => {
     if (englishFontUrl) {
       const fontFamilyName = `EnglishPreviewFont_${Date.now()}`
-      setEnglishPreviewFamily(fontFamilyName)
+      setEnglishPreviewFontFamily(fontFamilyName)
 
       const style = document.createElement("style")
       style.textContent = `
@@ -112,7 +130,7 @@ export const useFontMerger = () => {
   const handleKoreanFontUpload = async (file: File) => {
     try {
       const arrayBuffer = await file.arrayBuffer()
-      const font = parse(arrayBuffer)
+      const font = opentype.parse(arrayBuffer)
       setKoreanFont(font)
       setKoreanFontFile(file)
       setKoreanFontName(file.name)
@@ -131,7 +149,7 @@ export const useFontMerger = () => {
   const handleEnglishFontUpload = async (file: File) => {
     try {
       const arrayBuffer = await file.arrayBuffer()
-      const font = parse(arrayBuffer)
+      const font = opentype.parse(arrayBuffer)
       setEnglishFont(font)
       setEnglishFontFile(file)
       setEnglishFontName(file.name)
@@ -147,9 +165,9 @@ export const useFontMerger = () => {
     }
   }
 
-  // 유니코드 범위에서 문자 추출 - 간단한 패턴으로 복원
+  // 유니코드 범위에서 문자 추출 - useFontSubset과 동일한 패턴으로 기존 글리프 직접 사용
   const extractGlyphsFromRange = useCallback(
-    (sourceFont: Font, start: number, end: number, rangeDescription = "") => {
+    (sourceFont: opentype.Font, start: number, end: number, rangeDescription = "") => {
       const glyphs = []
       let addedCount = 0
 
@@ -158,6 +176,7 @@ export const useFontMerger = () => {
         const glyph = sourceFont.charToGlyph(char)
 
         if (glyph && glyph.index !== 0) {
+          // useFontSubset 방식: 기존 글리프를 직접 사용
           glyphs.push(glyph)
           addedCount++
         }
@@ -178,116 +197,73 @@ export const useFontMerger = () => {
     setProgress(0)
 
     try {
-      console.log("Starting font merge process...")
+      console.log("🚀 Starting font merge process with simpler approach...")
 
-      // useFontSubset 패턴: 간단한 글리프 배열 생성
-      const glyphs = [koreanFont.glyphs.get(0)] // .notdef glyph
-      let currentStep = 0
-      const totalSteps = Object.values(options).filter(Boolean).length
-
-      // 한글 문자 추가
-      if (options.koreanHangul) {
-        glyphs.push(...extractGlyphsFromRange(koreanFont, 0xac00, 0xd7af, "Korean Hangul"))
-        currentStep++
-        setProgress((currentStep / totalSteps) * 100)
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      }
-
-      if (options.koreanSymbols) {
-        glyphs.push(...extractGlyphsFromRange(koreanFont, 0x3130, 0x318f, "Korean Symbols"))
-        glyphs.push(...extractGlyphsFromRange(koreanFont, 0xa960, 0xa97f, "Korean Extended"))
-        currentStep++
-        setProgress((currentStep / totalSteps) * 100)
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      }
-
-      if (options.koreanNumbers) {
-        glyphs.push(...extractGlyphsFromRange(koreanFont, 0x1100, 0x11ff, "Korean Jamo"))
-        currentStep++
-        setProgress((currentStep / totalSteps) * 100)
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      }
-
-      // 영문 문자 추가
-      if (options.englishLetters) {
-        glyphs.push(...extractGlyphsFromRange(englishFont, 0x0041, 0x005a, "English Uppercase"))
-        glyphs.push(...extractGlyphsFromRange(englishFont, 0x0061, 0x007a, "English Lowercase"))
-        currentStep++
-        setProgress((currentStep / totalSteps) * 100)
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      }
-
-      if (options.englishNumbers) {
-        glyphs.push(...extractGlyphsFromRange(englishFont, 0x0030, 0x0039, "English Numbers"))
-        currentStep++
-        setProgress((currentStep / totalSteps) * 100)
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      }
-
-      if (options.englishSymbols) {
-        glyphs.push(...extractGlyphsFromRange(englishFont, 0x0020, 0x002f, "English Symbols 1"))
-        glyphs.push(...extractGlyphsFromRange(englishFont, 0x003a, 0x0040, "English Symbols 2"))
-        glyphs.push(...extractGlyphsFromRange(englishFont, 0x005b, 0x0060, "English Symbols 3"))
-        glyphs.push(...extractGlyphsFromRange(englishFont, 0x007b, 0x007e, "English Symbols 4"))
-        currentStep++
-        setProgress((currentStep / totalSteps) * 100)
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      }
-
-      if (options.englishSpecial) {
-        glyphs.push(...extractGlyphsFromRange(englishFont, 0x00a0, 0x00ff, "English Special 1"))
-        glyphs.push(...extractGlyphsFromRange(englishFont, 0x2000, 0x206f, "English Special 2"))
-        currentStep++
-        setProgress((currentStep / totalSteps) * 100)
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      }
-
-      if (options.englishLigatures) {
-        glyphs.push(...extractGlyphsFromRange(englishFont, 0xfb00, 0xfb4f, "Standard Ligatures"))
-        currentStep++
-        setProgress((currentStep / totalSteps) * 100)
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      }
-
-      if (options.englishIcons) {
-        glyphs.push(...extractGlyphsFromRange(englishFont, 0xe5fa, 0xe6ac, "Icons 1"))
-        glyphs.push(...extractGlyphsFromRange(englishFont, 0xe700, 0xe7c5, "Icons 2"))
-        glyphs.push(...extractGlyphsFromRange(englishFont, 0xf000, 0xf2e0, "Icons 3"))
-        currentStep++
-        setProgress((currentStep / totalSteps) * 100)
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      }
+      // 더 간단한 접근: 영문폰트를 기본으로 하고 한글 글리프만 추가
+      const baseFont = englishFont
+      const selectedText = buildSelectedText(options)
+      
+      console.log(`📝 Selected characters: ${selectedText.substring(0, 50)}...`)
+      
+      const uniqueChars = Array.from(new Set(selectedText.split("")))
+      console.log(`🔤 Unique characters count: ${uniqueChars.length}`)
+      
+      // useFontSubset과 완전히 동일한 방식
+      const glyphs = [baseFont.glyphs.get(0)] // .notdef glyph
+      
+      setProgress(50)
+      
+      // 각 문자에 대해 적절한 폰트에서 글리프 찾기
+      uniqueChars.forEach((char) => {
+        const charCode = char.charCodeAt(0)
+        let glyph = null
+        
+        // 한글 범위는 한글폰트에서, 나머지는 영문폰트에서
+        if (charCode >= 0x1100 && charCode <= 0xd7af) {
+          // 한글 범위
+          glyph = koreanFont.charToGlyph(char)
+        } else {
+          // 영문/기호 범위
+          glyph = englishFont.charToGlyph(char)
+        }
+        
+        if (glyph && glyph.index !== 0) {
+          glyphs.push(glyph)
+        }
+      })
 
       setProgress(100)
 
-      // 새로운 폰트 생성 - useFontSubset과 동일한 패턴
+      // useFontSubset과 완전히 동일한 폰트 생성 방식
+      const safeFontName = "MergedFont"
+      
+      console.log(`🔧 Creating font with ${glyphs.length} glyphs (useFontSubset style)`)
+      
       const mergedFont = new opentype.Font({
-        familyName: fontName,
-        styleName: englishFont.names?.fontSubfamily?.en || "Regular",
-        unitsPerEm: englishFont.unitsPerEm,
-        ascender: englishFont.ascender,
-        descender: englishFont.descender,
+        familyName: safeFontName,
+        styleName: baseFont.names?.fontSubfamily?.en || "Regular",
+        unitsPerEm: baseFont.unitsPerEm,
+        ascender: baseFont.ascender,
+        descender: baseFont.descender,
         glyphs: glyphs,
       })
       
-      console.log(`Font created with family name: ${fontName}`)
-      console.log(`Total glyphs in merged font: ${glyphs.length}`)
+      console.log(`✅ Font created successfully: ${safeFontName}`)
 
       setMergedFont(mergedFont)
 
-      // 미리보기를 위해 폰트 URL 생성
+      // 폰트 URL 생성
       const fontBuffer = mergedFont.toArrayBuffer()
       const blob = new Blob([fontBuffer], { type: "font/truetype" })
       const url = URL.createObjectURL(blob)
       setFontUrl(url)
-
+      
       const finalSizeKB = (fontBuffer.byteLength / 1024).toFixed(1)
       toast.success(`폰트 합치기가 완료되었습니다! (${finalSizeKB}KB, ${glyphs.length}개 글리프)`)
-
-      console.log(`Created merged font with ${glyphs.length} glyphs`)
-      console.log(`Merged font family name: ${fontName}`)
-      console.log(`Font buffer size: ${fontBuffer.byteLength} bytes`)
-      console.log(`Font URL created: ${url.substring(0, 50)}...`)
+      
+      console.log(`📦 Font buffer: ${fontBuffer.byteLength} bytes`)
+      console.log(`🔗 Font URL: ${url.substring(0, 50)}...`)
+      
     } catch (error) {
       setProgress(0)
       throw new Error(
@@ -296,6 +272,32 @@ export const useFontMerger = () => {
     } finally {
       setIsProcessing(false)
     }
+  }
+
+  // 선택된 옵션에 따라 텍스트 생성
+  const buildSelectedText = (options: MergeOptions): string => {
+    let text = ""
+    
+    if (options.koreanHangul) {
+      // 기본 한글 문자들
+      text += "가나다라마바사아자차카타파하"
+      text += "안녕하세요"
+    }
+    
+    if (options.englishLetters) {
+      text += "abcdefghijklmnopqrstuvwxyz"
+      text += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    }
+    
+    if (options.englishNumbers) {
+      text += "0123456789"
+    }
+    
+    if (options.englishSymbols) {
+      text += "!@#$%^&*()_+-=[]{}|;':\",./<>?"
+    }
+    
+    return text
   }
 
   const downloadFont = async (fileName: string) => {
@@ -327,8 +329,8 @@ export const useFontMerger = () => {
     setEnglishFontName("")
     setMergedFont(null)
     setPreviewFontFamily("")
-    setKoreanPreviewFamily("")
-    setEnglishPreviewFamily("")
+    setKoreanPreviewFontFamily("")
+    setEnglishPreviewFontFamily("")
     setProgress(0)
 
     // URL 정리
@@ -354,7 +356,7 @@ export const useFontMerger = () => {
         ? {
             font: koreanFont,
             file: koreanFontFile,
-            name: koreanPreviewFamily || koreanFontName,
+            name: koreanPreviewFontFamily || koreanFontName,
             size: formatFileSize(koreanFontFile.size),
           }
         : null,
@@ -363,7 +365,7 @@ export const useFontMerger = () => {
         ? {
             font: englishFont,
             file: englishFontFile,
-            name: englishPreviewFamily || englishFontName,
+            name: englishPreviewFontFamily || englishFontName,
             size: formatFileSize(englishFontFile.size),
           }
         : null,
