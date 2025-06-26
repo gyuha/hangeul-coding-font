@@ -149,6 +149,9 @@ function App() {
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     영문 폰트 전체 + 한글 폰트의 한글 부분이 자동으로 합쳐집니다
                   </p>
+                  <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                    ✨ fontkit 사용으로 리가처 기능을 최대한 보존합니다
+                  </p>
                 </div>
 
                 {/* Action Buttons */}

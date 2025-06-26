@@ -27,6 +27,7 @@ export default defineConfig(({ mode }) => {
     base: env.VITE_BASE_PATH || "/",
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),
+      global: 'globalThis',
     },
     server: {
       host: "0.0.0.0",
@@ -35,10 +36,14 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        buffer: "buffer",
       },
     },
     build: {
       outDir: "docs",
+    },
+    optimizeDeps: {
+      include: ['buffer'],
     },
   }
 })
