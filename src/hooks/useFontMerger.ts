@@ -182,7 +182,6 @@ export const useFontMerger = () => {
 
       // Parse with opentype.js for manipulation
       const englishOTFont = opentype.parse(englishBuffer)
-      const koreanOTFont = opentype.parse(koreanBuffer)
 
       // Get Korean glyphs
       const koreanGlyphs = getKoreanGlyphs()
