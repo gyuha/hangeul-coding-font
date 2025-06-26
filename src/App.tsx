@@ -177,7 +177,7 @@ function App() {
                       </>
                     ) : (
                       <>
-                        <Merge className="mr-2 w-5 h-5" />
+                        <Merge className="mr-2 w-5 h-5 rotate-180" />
                         폰트 합치기
                       </>
                     )}
