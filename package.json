@@ -24,6 +24,7 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "file-saver": "^2.0.5",
     "lorem-ipsum-kr": "^0.0.2",
     "lucide-react": "^0.522.0",
     "next-themes": "^0.4.6",
@@ -34,10 +35,12 @@
     "react-syntax-highlighter": "^15.6.1",
     "sonner": "^2.0.5",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "wasm-ttf2woff": "^1.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.4",
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^22.10.5",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",

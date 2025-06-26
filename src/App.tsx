@@ -2,7 +2,6 @@ import { Download, Loader2, Merge } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Toaster } from "sonner"
 import DownloadOverlay from "./components/DownloadOverlay"
-import ErrorDialog from "./components/ErrorDialog"
 import FontPreview from "./components/FontPreview"
 import FontUploader from "./components/FontUploader"
 import GitHubCorner from "./components/GitHubCorner"
@@ -14,7 +13,21 @@ import { useFontMerger } from "./hooks/useFontMerger"
 import type { MergeOptions as MergeOptionsType } from "./types/font"
 
 function App() {
-  const { fontState, loadFont, mergefonts, downloadFont, clearError } = useFontMerger()
+  const {
+    koreanFont,
+    englishFont,
+    koreanFontInfo,
+    englishFontInfo,
+    englishFontName,
+    mergedFont,
+    previewFontFamily,
+    isProcessing,
+    progress,
+    handleKoreanFontUpload,
+    handleEnglishFontUpload,
+    mergeFonts,
+    downloadFont,
+  } = useFontMerger()
 
   const [mergeOptions, setMergeOptions] = useState<MergeOptionsType>({
     koreanHangul: true,
@@ -39,23 +52,27 @@ function App() {
     postScriptFamilyName: string
   } | null>(null)
 
-  const canMerge = fontState.koreanFont && fontState.englishFont && !fontState.isLoading
-  const canDownload = fontState.mergedFont && !fontState.isLoading
+  const canMerge = koreanFont && englishFont && !isProcessing
+  const canDownload = mergedFont && !isProcessing
 
   useEffect(() => {
-    if (fontState.englishFont && !isFontNameEdited) {
-      setFontName(fontState.englishFont.name)
+    if (englishFontName && !isFontNameEdited) {
+      setFontName(englishFontName.replace(/\.[^/.]+$/, ""))
     }
-  }, [fontState.englishFont, isFontNameEdited])
+  }, [englishFontName, isFontNameEdited])
 
   const handleFontNameChange = (name: string) => {
     setFontName(name)
     setIsFontNameEdited(true)
   }
 
-  const handleMerge = () => {
-    mergefonts(mergeOptions, fontName)
-    setMergedFontName(fontName) // 합치기 완료 후 미리보기용 폰트 이름 설정
+  const handleMerge = async () => {
+    try {
+      await mergeFonts(mergeOptions, fontName)
+      setMergedFontName(fontName) // 합치기 완료 후 미리보기용 폰트 이름 설정
+    } catch (error) {
+      console.error("Merge failed:", error)
+    }
   }
 
   const handleDownload = async () => {
@@ -66,10 +83,12 @@ function App() {
 
     try {
       // 다운로드 처리를 비동기로 실행
-      const result = await downloadFont(fontName)
-      if (result) {
-        setDownloadInfo(result)
-      }
+      await downloadFont(fontName)
+      setDownloadInfo({
+        downloadFileName: fontName.replace(/[^a-zA-Z0-9-]/g, "") || "HangeulCodingFont",
+        originalFontName: fontName,
+        postScriptFamilyName: `${fontName.replace(/[^a-zA-Z0-9-]/g, "")}-Regular`,
+      })
     } catch (error) {
       console.error("Download failed:", error)
     } finally {
@@ -84,8 +103,8 @@ function App() {
       <GitHubCorner url="https://github.com/gyuha/hangeul-coding-font" />
       {isDownloading && <DownloadOverlay isVisible={isDownloading} />}
       <LoadingOverlay
-        isVisible={fontState.isLoading && !isDownloading}
-        progress={fontState.progress}
+        isVisible={isProcessing && !isDownloading}
+        progress={progress}
         message="폰트 합치는 중..."
       />
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -100,12 +119,6 @@ function App() {
             </p>
           </div>
 
-          {/* Error Dialog */}
-          <ErrorDialog
-            isOpen={!!fontState.error}
-            onClose={clearError}
-            message={fontState.error || ""}
-          />
 
           {/* Font Upload Section - Split Layout */}
           <div className="mb-6 bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">
@@ -121,8 +134,8 @@ function App() {
                   <FontUploader
                     title="English Font"
                     description="영문 문자를 포함한 폰트 파일을 업로드하세요"
-                    fontInfo={fontState.englishFont}
-                    onFontUpload={(file) => loadFont(file, "english")}
+                    fontInfo={englishFontInfo}
+                    onFontUpload={handleEnglishFontUpload}
                   />
                 </div>
                 <div className="min-w-[320px] bg-gray-50 dark:bg-gray-700 rounded-lg p-6 shadow">
@@ -132,8 +145,8 @@ function App() {
                   <FontUploader
                     title="Korean Font"
                     description="한글 문자를 포함한 폰트 파일을 업로드하세요"
-                    fontInfo={fontState.koreanFont}
-                    onFontUpload={(file) => loadFont(file, "korean")}
+                    fontInfo={koreanFontInfo}
+                    onFontUpload={handleKoreanFontUpload}
                   />
                 </div>
               </div>
@@ -152,7 +165,7 @@ function App() {
                   onOptionsChange={setMergeOptions}
                   fontName={fontName}
                   onFontNameChange={handleFontNameChange}
-                  showFontNameWarning={!!fontState.mergedFont && fontName !== mergedFontName}
+                  showFontNameWarning={!!mergedFont && fontName !== mergedFontName}
                 />
 
                 {/* Action Buttons */}
@@ -163,7 +176,7 @@ function App() {
                     size="lg"
                     className="min-w-[200px] h-12 text-lg"
                   >
-                    {fontState.isLoading ? (
+                    {isProcessing ? (
                       <>
                         <Loader2 className="mr-2 w-5 h-5 animate-spin" />
                         합치는 중...
@@ -181,14 +194,14 @@ function App() {
           )}
 
           {/* Preview Section */}
-          {fontState.mergedFont && (
+          {mergedFont && (
             <div className="mb-6 bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">
               <div className="p-6">
                 <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
                   3. 미리보기
                 </h2>
                 <FontPreview
-                  fontName={mergedFontName}
+                  fontName={previewFontFamily || mergedFontName}
                   previewText={previewText}
                   onPreviewTextChange={setPreviewText}
                 />
