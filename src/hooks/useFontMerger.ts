@@ -831,53 +831,11 @@ export const useFontMerger = () => {
           progress: 100,
         }))
 
-        // VSCode 사용을 위한 명확한 안내 메시지
-        const safeFontName = fontName.replace(/[^a-zA-Z0-9-]/g, "")
-        const displayName = safeFontName.length > 0 ? safeFontName : "HangeulCodingFont"
-        const postScriptFamilyName = `${displayName}-Regular`
-
         // 폰트 크기 정보 계산
         const fontBuffer = mergedFont.toArrayBuffer()
         const finalSizeKB = (fontBuffer.byteLength / 1024).toFixed(1)
-        const koreanSizeKB = parseFloat(fontState.koreanFont.size.replace(/[^0-9.]/g, ""))
-        const englishSizeKB = parseFloat(fontState.englishFont.size.replace(/[^0-9.]/g, ""))
-        const originalTotalKB = koreanSizeKB + englishSizeKB
-        const compressionRatio = ((parseFloat(finalSizeKB) / originalTotalKB) * 100).toFixed(1)
 
-        const successMessage = `
-🎉 폰트 합치기가 완료되었습니다!
-
-📊 **크기 정보**:
-   ✨ 최종 폰트: ${finalSizeKB} KB (${glyphsArray.length}개 글리프)
-   📈 원본 합계: ${originalTotalKB.toFixed(1)} KB (압축률: ${compressionRatio}%)
-
-📱 **웹 미리보기**: 현재 화면에서 "${fontName}" 폰트로 확인하세요.
-
-💻 **VSCode에서 사용하려면**:
-   🔸 반드시 폰트를 다운로드한 후 시스템에 설치
-   🔸 VSCode 설정에서 다음 중 하나 사용:
-   
-   방법 1 (표시 이름):
-   "editor.fontFamily": "${fontName}, monospace"
-   
-   방법 2 (PostScript 이름):  
-   "editor.fontFamily": "${postScriptFamilyName}, monospace"
-
-🔍 **폰트 이름 확인 방법**:
-   • Windows: 설치된 폰트 → 속성 → 세부정보 → PostScript 이름
-   • macOS: 폰트 북 앱에서 PostScript 이름 확인
-   • PowerShell: Get-Fonts 명령어로 설치된 폰트 목록 확인
-
-⚠️ **중요**: 
-   • 웹에서 생성된 폰트는 미리보기용입니다
-   • VSCode 등 에디터 사용 시 반드시 시스템 설치 필요
-   • 폰트가 안 보이면 VSCode 완전 재시작
-
-🔄 문제 해결: 
-   • 폰트명을 따옴표로 감싸기: '"${postScriptFamilyName}"'
-   • 시스템 폰트 목록에서 정확한 이름 확인
-   • 폰트 캐시 새로고침 (시스템 재시작)
-        `.trim()
+        const successMessage = `폰트 합치기가 완료되었습니다! (${finalSizeKB}KB, ${glyphsArray.length}개 글리프)`
 
         setSuccess(successMessage)
 
@@ -942,6 +900,9 @@ export const useFontMerger = () => {
         document.body.removeChild(link)
         URL.revokeObjectURL(url)
 
+        // 다운로드 완료 toast 메시지
+        setSuccess(`폰트 다운로드가 완료되었습니다! (${downloadFileName}.ttf)`)
+
         // VSCode 사용 안내 정보 반환 (메시지 대신)
         return {
           downloadFileName,
@@ -953,7 +914,7 @@ export const useFontMerger = () => {
         return null
       }
     },
-    [fontState.mergedFont, setError]
+    [fontState.mergedFont, setError, setSuccess]
   )
 
   return {
