@@ -62,7 +62,7 @@ console.log(greet("개발자"));
 // 영문: abcdefghijklmnopqrstuvwxyz
 //       ABCDEFGHIJKLMNOPQRSTUVWXYZ
 // 혼동되기 쉬운 문자: o008 iIlL1 {} [] g9qCGQ ~-+=>
-// 아이콘 문자 :      ⇡  3.10.12   `
+// 아이콘 문자 :      ⇡    `
 
   const sampleTexts = [
     {

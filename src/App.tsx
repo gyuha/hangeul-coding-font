@@ -119,7 +119,6 @@ function App() {
             </p>
           </div>
 
-
           {/* Font Upload Section - Split Layout */}
           <div className="mb-6 bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">
             <div className="p-6">
