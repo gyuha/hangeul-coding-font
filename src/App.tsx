@@ -1,15 +1,15 @@
 import { Download, Loader2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { Toaster } from "sonner"
 import DownloadOverlay from "./components/DownloadOverlay"
 import FontUploader from "./components/FontUploader"
 import GitHubCorner from "./components/GitHubCorner"
+import { Input } from "./components/ui/input"
+import { Label } from "./components/ui/label"
 import LoadingOverlay from "./components/LoadingOverlay"
-import MergeOptions from "./components/MergeOptions"
 import { Button } from "./components/ui/button"
 import VSCodeGuide from "./components/VSCodeGuide"
 import { useFontMerger } from "./hooks/useFontMerger"
-import type { MergeOptions as MergeOptionsType } from "./types/font"
 
 function App() {
   const {
@@ -25,18 +25,7 @@ function App() {
     mergeAndDownloadFont,
   } = useFontMerger()
 
-  const [mergeOptions, setMergeOptions] = useState<MergeOptionsType>({
-    koreanHangul: true,
-    koreanSymbols: true,
-    koreanNumbers: false,
-    englishLetters: true,
-    englishNumbers: true,
-    englishSymbols: true,
-    englishSpecial: true,
-    englishLigatures: true,
-    englishIcons: true,
-  })
-
+  const fontNameId = useId()
   const [fontName, setFontName] = useState("")
   const [isFontNameEdited, setIsFontNameEdited] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
@@ -67,7 +56,7 @@ function App() {
 
     try {
       // 직접 다운로드 처리
-      await mergeAndDownloadFont(mergeOptions, fontName)
+      await mergeAndDownloadFont(fontName)
       setDownloadInfo({
         downloadFileName: fontName.replace(/[^a-zA-Z0-9-]/g, "") || "HangeulCodingFont",
         originalFontName: fontName,
@@ -136,23 +125,34 @@ function App() {
             </div>
           </div>
 
-          {/* Merge Options and Actions Section */}
+          {/* Font Name and Actions Section */}
           {canMerge && (
             <div className="mb-6 bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">
               <div className="p-6">
                 <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
-                  2. 합치기 설정
+                  2. 폰트 이름 설정 및 다운로드
                 </h2>
-                <MergeOptions
-                  options={mergeOptions}
-                  onOptionsChange={setMergeOptions}
-                  fontName={fontName}
-                  onFontNameChange={handleFontNameChange}
-                  showFontNameWarning={false}
-                />
+                
+                {/* Font Name Input */}
+                <div className="mb-6 max-w-md">
+                  <Label htmlFor={fontNameId} className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    폰트 이름
+                  </Label>
+                  <Input
+                    id={fontNameId}
+                    type="text"
+                    value={fontName}
+                    onChange={(e) => handleFontNameChange(e.target.value)}
+                    placeholder="폰트 이름을 입력하세요"
+                    className="mt-1"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    영문 폰트 전체 + 한글 폰트의 한글 부분이 자동으로 합쳐집니다
+                  </p>
+                </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-center mt-6">
+                <div className="flex justify-center">
                   <Button
                     onClick={handleMergeAndDownload}
                     disabled={!canMerge}
