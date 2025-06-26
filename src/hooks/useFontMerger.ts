@@ -974,12 +974,40 @@ export const useFontMerger = () => {
         downloadGlyphs.push(notdefGlyph)
         
         console.log("📝 한글 글리프 수집 중...")
-        // 한글 글리프 수집 (샘플링으로 속도 향상)
+        
+        // 한글 기본 음절 수집 (가, 나, 다... 각 초성별로)
+        const basicKoreanChars = [
+          0xac00, // 가
+          0xb098, // 나
+          0xb2e4, // 다
+          0xb77c, // 라
+          0xb9c8, // 마
+          0xbc14, // 바
+          0xc0ac, // 사
+          0xc544, // 아
+          0xc790, // 자
+          0xcc28, // 차
+          0xcee4, // 카
+          0xd0c0, // 타
+          0xd30c, // 파
+          0xd558, // 하
+        ]
+        
         let koreanCount = 0
-        for (let unicode = 0xac00; unicode <= 0xd7af && koreanCount < 100; unicode += 10) {
+        
+        // 기본 한글 문자들 수집
+        for (const unicode of basicKoreanChars) {
           const glyphIndex = fontState.koreanFont.font.charToGlyphIndex(String.fromCharCode(unicode))
+          console.log(`한글 테스트: ${String.fromCharCode(unicode)} (U+${unicode.toString(16)}) -> 글리프 인덱스: ${glyphIndex}`)
+          
           if (glyphIndex > 0 && !unicodeSet.has(unicode)) {
             const originalGlyph = fontState.koreanFont.font.glyphs.get(glyphIndex)
+            console.log(`원본 글리프:`, {
+              name: originalGlyph?.name,
+              advanceWidth: originalGlyph?.advanceWidth,
+              pathCommands: originalGlyph?.path?.commands?.length || 0
+            })
+            
             if (originalGlyph?.path?.commands?.length > 0) {
               try {
                 const newGlyph = new Glyph({
@@ -992,8 +1020,37 @@ export const useFontMerger = () => {
                 downloadGlyphs.push(newGlyph)
                 unicodeSet.add(unicode)
                 koreanCount++
+                console.log(`✅ 한글 글리프 추가: ${String.fromCharCode(unicode)}`)
               } catch (glyphError) {
-                console.warn(`한글 글리프 생성 실패 (U+${unicode.toString(16)}):`, glyphError)
+                console.warn(`❌ 한글 글리프 생성 실패 (${String.fromCharCode(unicode)}):`, glyphError)
+              }
+            } else {
+              console.warn(`⚠️  한글 글리프 경로 없음: ${String.fromCharCode(unicode)}`)
+            }
+          }
+        }
+        
+        // 추가 한글 수집 (더 많은 문자)
+        for (let unicode = 0xac00; unicode <= 0xac0f && koreanCount < 100; unicode++) {
+          if (!unicodeSet.has(unicode)) {
+            const glyphIndex = fontState.koreanFont.font.charToGlyphIndex(String.fromCharCode(unicode))
+            if (glyphIndex > 0) {
+              const originalGlyph = fontState.koreanFont.font.glyphs.get(glyphIndex)
+              if (originalGlyph?.path?.commands?.length > 0) {
+                try {
+                  const newGlyph = new Glyph({
+                    name: originalGlyph.name || `uni${unicode.toString(16).toUpperCase().padStart(4, '0')}`,
+                    unicode: unicode,
+                    advanceWidth: originalGlyph.advanceWidth || 1000,
+                    path: originalGlyph.path,
+                    index: downloadGlyphs.length
+                  }) as unknown
+                  downloadGlyphs.push(newGlyph)
+                  unicodeSet.add(unicode)
+                  koreanCount++
+                } catch (glyphError) {
+                  console.warn(`한글 글리프 생성 실패 (U+${unicode.toString(16)}):`, glyphError)
+                }
               }
             }
           }
@@ -1002,6 +1059,24 @@ export const useFontMerger = () => {
         console.log("📝 영문 글리프 수집 중...")
         // 영문 글리프 수집 (기본 ASCII)
         let englishCount = 0
+        
+        // 기본 영문 문자 테스트
+        const testChars = ['A', 'a', '0', ' ', '!']
+        for (const char of testChars) {
+          const unicode = char.charCodeAt(0)
+          const glyphIndex = fontState.englishFont.font.charToGlyphIndex(char)
+          console.log(`영문 테스트: ${char} (U+${unicode.toString(16)}) -> 글리프 인덱스: ${glyphIndex}`)
+          
+          if (glyphIndex > 0) {
+            const originalGlyph = fontState.englishFont.font.glyphs.get(glyphIndex)
+            console.log(`원본 글리프:`, {
+              name: originalGlyph?.name,
+              advanceWidth: originalGlyph?.advanceWidth,
+              pathCommands: originalGlyph?.path?.commands?.length || 0
+            })
+          }
+        }
+        
         for (let unicode = 0x0020; unicode <= 0x007e; unicode++) {
           if (!unicodeSet.has(unicode)) {
             const glyphIndex = fontState.englishFont.font.charToGlyphIndex(String.fromCharCode(unicode))
@@ -1033,31 +1108,80 @@ export const useFontMerger = () => {
           throw new Error(`수집된 글리프가 너무 적습니다: ${downloadGlyphs.length}개`)
         }
         
-        // 2. 완전히 새로운 폰트 생성
-        const Font = (window as unknown as { opentype: { Font: new (options: unknown) => Font } }).opentype.Font
-        const safeFontName = fontName.replace(/[^a-zA-Z0-9-]/g, "")
+        // 2. 기존 영문 폰트를 베이스로 한글 글리프 추가하는 방식
+        console.log("🏗️  영문 폰트 베이스로 한글 글리프 추가 방식 시도...")
+        
         const englishFont = fontState.englishFont.font
+        const safeFontName = fontName.replace(/[^a-zA-Z0-9-]/g, "")
         
-        // OpenType.js 표준 형식에 맞는 폰트 옵션
-        const downloadFontOptions = {
-          familyName: fontName,
-          styleName: "Regular", 
-          unitsPerEm: englishFont.unitsPerEm || 1000,
-          ascender: englishFont.ascender || 800,
-          descender: englishFont.descender || -200,
-          glyphs: downloadGlyphs
-        }
-        
-        console.log("🏗️  다운로드용 폰트 객체 생성 중...")
-        console.log("📋 폰트 옵션:", downloadFontOptions)
-        
+        // 영문 폰트를 복사
         let downloadFont: Font
+        
         try {
-          downloadFont = new Font(downloadFontOptions)
-        } catch (constructorError) {
-          console.error("❌ Font 생성자 오류:", constructorError)
+          // 방법 1: 영문 폰트 복사 후 한글 글리프 추가
+          console.log("📋 영문 폰트 복사 중...")
           
-          // 더 단순한 옵션으로 재시도
+          // 영문 폰트의 모든 글리프 수집
+          const allGlyphs = []
+          
+          // 영문 폰트의 기존 글리프들을 모두 복사
+          for (let i = 0; i < englishFont.glyphs.length; i++) {
+            const glyph = englishFont.glyphs.get(i)
+            if (glyph) {
+              allGlyphs.push(glyph)
+            }
+          }
+          
+          console.log(`📊 영문 폰트 글리프: ${allGlyphs.length}개`)
+          
+          // 한글 글리프 추가
+          let addedKoreanCount = 0
+          for (const unicode of basicKoreanChars) {
+            const glyphIndex = fontState.koreanFont.font.charToGlyphIndex(String.fromCharCode(unicode))
+            if (glyphIndex > 0) {
+              const koreanGlyph = fontState.koreanFont.font.glyphs.get(glyphIndex)
+              if (koreanGlyph?.path?.commands?.length > 0) {
+                // 기존 글리프 복사하여 추가
+                const clonedGlyph = Object.assign(Object.create(Object.getPrototypeOf(koreanGlyph)), koreanGlyph)
+                clonedGlyph.index = allGlyphs.length
+                clonedGlyph.unicode = unicode
+                allGlyphs.push(clonedGlyph)
+                addedKoreanCount++
+              }
+            }
+          }
+          
+          console.log(`📊 추가된 한글 글리프: ${addedKoreanCount}개`)
+          console.log(`📊 총 글리프 수: ${allGlyphs.length}개`)
+          
+          // 영문 폰트의 메타데이터를 유지하면서 새 폰트 생성
+          const Font = (window as unknown as { opentype: { Font: new (options: unknown) => Font } }).opentype.Font
+          
+          const fontOptions = {
+            familyName: fontName,
+            styleName: englishFont.names?.fontSubfamily?.en || "Regular",
+            unitsPerEm: englishFont.unitsPerEm,
+            ascender: englishFont.ascender,
+            descender: englishFont.descender,
+            glyphs: allGlyphs,
+            names: {
+              fontFamily: { en: fontName },
+              fontSubfamily: { en: englishFont.names?.fontSubfamily?.en || "Regular" },
+              postScriptName: { en: `${safeFontName}-Regular` },
+              version: { en: "1.0" },
+            }
+          }
+          
+          console.log("🏗️  확장된 폰트 생성 중...")
+          downloadFont = new Font(fontOptions)
+          
+        } catch (copyError) {
+          console.error("❌ 폰트 복사 방식 실패:", copyError)
+          
+          // 폴백: 기본 방식으로 재시도
+          console.log("🔄 기본 방식으로 폴백...")
+          const Font = (window as unknown as { opentype: { Font: new (options: unknown) => Font } }).opentype.Font
+          
           const minimalOptions = {
             familyName: fontName,
             styleName: "Regular",
@@ -1067,7 +1191,6 @@ export const useFontMerger = () => {
             glyphs: downloadGlyphs
           }
           
-          console.log("🔄 최소 옵션으로 재시도:", minimalOptions)
           downloadFont = new Font(minimalOptions)
         }
         
@@ -1084,6 +1207,21 @@ export const useFontMerger = () => {
         const headerView = new Uint8Array(arrayBuffer.slice(0, 16))
         const headerHex = Array.from(headerView).map(b => b.toString(16).padStart(2, '0')).join(' ')
         console.log("🏷️  폰트 헤더:", headerHex)
+        
+        // 생성된 폰트에서 한글 글리프 확인
+        console.log("🔍 생성된 폰트의 한글 글리프 확인...")
+        const testFont = downloadFont as unknown as { charToGlyphIndex: (char: string) => number }
+        
+        for (const unicode of basicKoreanChars.slice(0, 5)) {
+          const char = String.fromCharCode(unicode)
+          const glyphIndex = testFont.charToGlyphIndex(char)
+          console.log(`생성된 폰트에서 ${char} (U+${unicode.toString(16)}) -> 글리프 인덱스: ${glyphIndex}`)
+        }
+        
+        // 예상 폰트 크기 계산
+        const expectedSize = downloadGlyphs.length * 500 + 20000 // 글리프당 대략 500바이트 + 헤더
+        console.log(`📊 크기 분석: 실제 ${arrayBuffer.byteLength}bytes vs 예상 ${expectedSize}bytes`)
+        console.log(`📊 압축률: ${((arrayBuffer.byteLength / expectedSize) * 100).toFixed(1)}%`)
         
         const downloadData = new Uint8Array(arrayBuffer)
         const blob = new Blob([downloadData], { type: "font/ttf" })
