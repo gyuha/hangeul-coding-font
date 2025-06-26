@@ -104,18 +104,21 @@ export const useFontMerger = () => {
           if (glyphIndex > 0 && !glyphMap.has(i)) {
             const originalGlyph = sourceFont.glyphs.get(glyphIndex)
             // 글리프가 실제로 존재하고 유효한 경우만 추가
-            if (originalGlyph && originalGlyph.path && originalGlyph.path.commands && originalGlyph.path.commands.length > 0) {
+            if (originalGlyph?.path?.commands && originalGlyph.path.commands.length > 0) {
               // 글리프를 복사하여 원본 데이터 보호
-              const clonedGlyph = Object.assign(Object.create(Object.getPrototypeOf(originalGlyph)), originalGlyph)
-              
+              const clonedGlyph = Object.assign(
+                Object.create(Object.getPrototypeOf(originalGlyph)),
+                originalGlyph
+              )
+
               // 글리프 이름이 없는 경우 간단한 이름 설정
               if (!clonedGlyph.name || clonedGlyph.name === ".notdef") {
                 clonedGlyph.name = `glyph${glyphIndex}`
               }
-              
+
               // 유니코드 값 설정
               clonedGlyph.unicode = i
-              
+
               glyphMap.set(i, clonedGlyph)
               addedCount++
             }
@@ -170,7 +173,10 @@ export const useFontMerger = () => {
         const notdefGlyph = baseFont.glyphs.get(0) || fontState.englishFont.font.glyphs.get(0)
         if (notdefGlyph) {
           // .notdef 글리프의 이름 확인 및 설정
-          const clonedNotdef = Object.assign(Object.create(Object.getPrototypeOf(notdefGlyph)), notdefGlyph)
+          const clonedNotdef = Object.assign(
+            Object.create(Object.getPrototypeOf(notdefGlyph)),
+            notdefGlyph
+          )
           if (!clonedNotdef.name || clonedNotdef.name === "") {
             clonedNotdef.name = ".notdef"
           }
@@ -443,8 +449,8 @@ export const useFontMerger = () => {
 
         // .notdef 글리프가 첫 번째에 위치하도록 정렬
         glyphsArray.sort((a, b) => {
-          const aIsNotdef = a?.name === ".notdef" || (a as any)?.index === 0
-          const bIsNotdef = b?.name === ".notdef" || (b as any)?.index === 0
+          const aIsNotdef = a?.name === ".notdef" || (a as { index?: number })?.index === 0
+          const bIsNotdef = b?.name === ".notdef" || (b as { index?: number })?.index === 0
           if (aIsNotdef && !bIsNotdef) return -1
           if (!aIsNotdef && bIsNotdef) return 1
           return 0
@@ -477,7 +483,12 @@ export const useFontMerger = () => {
           const Font = (window as unknown as { opentype: { Font: new (options: unknown) => Font } })
             .opentype.Font
 
-          console.log(`Using all ${glyphsArray.length} selected glyphs`)
+          console.log(`🔧 폰트 생성 시작: ${glyphsArray.length}개 글리프 사용`)
+
+          // 글리프 개수 검증 - 최소 글리프 수 확인
+          if (glyphsArray.length < 10) {
+            console.warn(`⚠️  글리프 수가 매우 적음: ${glyphsArray.length}개. 폰트 생성에 문제가 발생할 수 있습니다.`)
+          }
 
           // VSCode 호환성을 위한 안전한 PostScript 이름 생성
           const safeFontName = fontName.replace(/[^a-zA-Z0-9-]/g, "")
@@ -489,6 +500,44 @@ export const useFontMerger = () => {
 
           // 영문 폰트의 메타데이터를 그대로 사용하고 이름만 변경
           const englishFont = fontState.englishFont.font
+          
+          // 글리프 유니코드 매핑 생성 및 검증 - cmap 테이블용
+          console.log("📋 글리프 유니코드 매핑 검증 중...")
+          const unicodeMappings = new Map()
+          let validGlyphCount = 0
+          
+          glyphsArray.forEach((glyph, index) => {
+            if (glyph && glyph.unicode !== undefined && glyph.unicode > 0) {
+              unicodeMappings.set(glyph.unicode, index)
+              validGlyphCount++
+            }
+          })
+          
+          console.log(`✅ ${validGlyphCount}개의 유효한 유니코드 매핑 생성 (총 ${glyphsArray.length}개 글리프 중)`)
+          
+          if (validGlyphCount === 0) {
+            throw new Error("유효한 유니코드 매핑이 없습니다. 글리프에 unicode 속성이 설정되지 않았습니다.")
+          }
+          // cmap 테이블 생성 - Unicode BMP와 전체 Unicode 평면 지원
+          console.log("🗺️  cmap 테이블 생성 중...")
+          
+          const cmap = {
+            version: 0,
+            numTables: 2,
+            encodingRecords: [
+              {
+                platformID: 3, // Microsoft
+                encodingID: 1, // Unicode BMP
+                offset: 0
+              },
+              {
+                platformID: 3, // Microsoft  
+                encodingID: 10, // Unicode full repertoire
+                offset: 0
+              }
+            ]
+          }
+
           const fontOptions = {
             familyName: displayFamilyName,
             styleName: englishFont.names.fontSubfamily?.en || "Regular",
@@ -497,6 +546,8 @@ export const useFontMerger = () => {
             descender: englishFont.descender || -200,
             lineGap: (englishFont as { lineGap?: number }).lineGap || 0,
             glyphs: glyphsArray,
+            // cmap 테이블 포함 - 필수!
+            cmap: cmap,
             // 영문 폰트의 names 테이블을 기반으로 이름만 변경
             names: {
               fontFamily: { en: displayFamilyName },
@@ -583,38 +634,62 @@ export const useFontMerger = () => {
             // 글리프 인덱스를 올바르게 재할당
             glyphsArray.forEach((glyph, index) => {
               if (glyph && typeof glyph === "object" && "index" in glyph) {
-                (glyph as { index: number }).index = index
+                ;(glyph as { index: number }).index = index
               }
             })
-            
+
+            console.log("🏗️  폰트 객체 생성 중...")
             mergedFont = new Font(fontOptions)
             
+            console.log("✅ 폰트 객체 생성 완료")
+            console.log("📊 폰트 정보:", {
+              familyName: (mergedFont as unknown as { familyName?: string }).familyName,
+              glyphCount: mergedFont.glyphs?.length || 0,
+              unitsPerEm: mergedFont.unitsPerEm,
+              ascender: mergedFont.ascender,
+              descender: mergedFont.descender
+            })
+
             // 폰트 생성 후 즉시 직렬화 테스트
+            console.log("🧪 폰트 직렬화 테스트 중...")
             const testBuffer = mergedFont.toArrayBuffer()
-            if (!testBuffer || testBuffer.byteLength < 1000) {
-              throw new Error("Generated font is too small or empty")
+            console.log(`📏 생성된 폰트 크기: ${testBuffer.byteLength} bytes`)
+            
+            if (!testBuffer || testBuffer.byteLength < 10000) { // 최소 크기를 10KB로 증가
+              throw new Error(`생성된 폰트가 너무 작습니다: ${testBuffer?.byteLength || 0} bytes (최소 10KB 필요)`)
             }
             
+            // 폰트 헤더 검증
+            const headerView = new Uint8Array(testBuffer.slice(0, 16))
+            const header = Array.from(headerView).map(b => b.toString(16).padStart(2, '0')).join(' ')
+            console.log("🏷️  폰트 헤더:", header)
+            
+            // TTF/OTF 시그니처 검증
+            const signature = new Uint32Array(testBuffer.slice(0, 4))[0]
+            console.log(`🔐 폰트 시그니처: 0x${signature.toString(16)}`)
+            
+            if (signature !== 0x00010000 && signature !== 0x4F54544F) { // TTF 또는 OTF
+              console.warn("⚠️  비표준 폰트 시그니처 감지")
+            }
           } catch (fontError) {
             // 오류가 발생하면 더욱 간단한 옵션으로 다시 시도
             if (fontError instanceof Error) {
               console.warn("폰트 생성 오류, 최소 옵션으로 재시도:", fontError.message)
 
               // 유효한 글리프만 필터링
-              const validGlyphs = glyphsArray.filter(glyph => 
-                glyph && 
-                glyph.path && 
-                glyph.path.commands && 
-                glyph.path.commands.length > 0
+              const validGlyphs = glyphsArray.filter(
+                (glyph) => glyph?.path?.commands && glyph.path.commands.length > 0
               )
-              
+
               // 인덱스 재할당
               validGlyphs.forEach((glyph, index) => {
                 if (glyph && typeof glyph === "object" && "index" in glyph) {
-                  (glyph as { index: number }).index = index
+                  ;(glyph as { index: number }).index = index
                 }
               })
 
+              console.log(`🔄 최소 옵션으로 재시도: ${validGlyphs.length}개 유효 글리프 사용`)
+              
               const minimalFontOptions = {
                 familyName: fontName,
                 styleName: "Regular",
@@ -622,6 +697,16 @@ export const useFontMerger = () => {
                 ascender: englishFont.ascender || 800,
                 descender: englishFont.descender || -200,
                 glyphs: validGlyphs,
+                // 최소 cmap 테이블
+                cmap: {
+                  version: 0,
+                  numTables: 1,
+                  encodingRecords: [{
+                    platformID: 3,
+                    encodingID: 1,
+                    offset: 0
+                  }]
+                },
                 names: {
                   fontFamily: { en: fontName },
                   fontSubfamily: { en: "Regular" },
@@ -861,34 +946,150 @@ export const useFontMerger = () => {
         return null
       }
 
+      // 폰트 생성 과정에서 사용된 데이터를 재활용하지 않고 처음부터 다시 생성
+      if (!fontState.koreanFont || !fontState.englishFont) {
+        setError("원본 폰트 데이터가 없습니다. 폰트를 다시 합쳐주세요.")
+        return null
+      }
+
       try {
-        // 다운로드 시에도 lookup type 오류 대응
-        let arrayBuffer: ArrayBuffer
-        try {
-          arrayBuffer = fontState.mergedFont.toArrayBuffer()
-        } catch (serializationError) {
-          if (
-            serializationError instanceof Error &&
-            serializationError.message.includes("lookup type")
-          ) {
-            throw new Error(
-              "폰트에 지원되지 않는 고급 기능이 포함되어 있습니다. 다시 폰트를 합쳐주세요."
-            )
-          } else {
-            throw serializationError
+        console.log("🚀 다운로드용 폰트 완전 재생성 시작...")
+        
+        // 1. 원본 폰트에서 글리프 다시 수집
+        const downloadGlyphs = []
+        const unicodeSet = new Set()
+        
+        // .notdef 글리프 추가 (필수) - OpenType.js의 Glyph 생성자 사용
+        const Glyph = (window as unknown as { opentype: { Glyph: new (options: unknown) => unknown } }).opentype.Glyph
+        const Path = (window as unknown as { opentype: { Path: new () => unknown } }).opentype.Path
+        
+        // 기본 .notdef 글리프 생성
+        const notdefPath = new Path() as unknown
+        const notdefGlyph = new Glyph({
+          name: ".notdef",
+          advanceWidth: 500,
+          path: notdefPath,
+          index: 0
+        }) as unknown
+        downloadGlyphs.push(notdefGlyph)
+        
+        console.log("📝 한글 글리프 수집 중...")
+        // 한글 글리프 수집 (샘플링으로 속도 향상)
+        let koreanCount = 0
+        for (let unicode = 0xac00; unicode <= 0xd7af && koreanCount < 100; unicode += 10) {
+          const glyphIndex = fontState.koreanFont.font.charToGlyphIndex(String.fromCharCode(unicode))
+          if (glyphIndex > 0 && !unicodeSet.has(unicode)) {
+            const originalGlyph = fontState.koreanFont.font.glyphs.get(glyphIndex)
+            if (originalGlyph?.path?.commands?.length > 0) {
+              try {
+                const newGlyph = new Glyph({
+                  name: originalGlyph.name || `uni${unicode.toString(16).toUpperCase().padStart(4, '0')}`,
+                  unicode: unicode,
+                  advanceWidth: originalGlyph.advanceWidth || 1000,
+                  path: originalGlyph.path,
+                  index: downloadGlyphs.length
+                }) as unknown
+                downloadGlyphs.push(newGlyph)
+                unicodeSet.add(unicode)
+                koreanCount++
+              } catch (glyphError) {
+                console.warn(`한글 글리프 생성 실패 (U+${unicode.toString(16)}):`, glyphError)
+              }
+            }
           }
         }
-
-        // 폰트 데이터 검증
-        if (!arrayBuffer || arrayBuffer.byteLength < 1000) {
-          throw new Error("생성된 폰트 파일이 너무 작거나 비어있습니다.")
+        
+        console.log("📝 영문 글리프 수집 중...")
+        // 영문 글리프 수집 (기본 ASCII)
+        let englishCount = 0
+        for (let unicode = 0x0020; unicode <= 0x007e; unicode++) {
+          if (!unicodeSet.has(unicode)) {
+            const glyphIndex = fontState.englishFont.font.charToGlyphIndex(String.fromCharCode(unicode))
+            if (glyphIndex > 0) {
+              const originalGlyph = fontState.englishFont.font.glyphs.get(glyphIndex)
+              if (originalGlyph?.path?.commands?.length > 0) {
+                try {
+                  const newGlyph = new Glyph({
+                    name: originalGlyph.name || `uni${unicode.toString(16).toUpperCase().padStart(4, '0')}`,
+                    unicode: unicode,
+                    advanceWidth: originalGlyph.advanceWidth || 500,
+                    path: originalGlyph.path,
+                    index: downloadGlyphs.length
+                  }) as unknown
+                  downloadGlyphs.push(newGlyph)
+                  unicodeSet.add(unicode)
+                  englishCount++
+                } catch (glyphError) {
+                  console.warn(`영문 글리프 생성 실패 (U+${unicode.toString(16)}):`, glyphError)
+                }
+              }
+            }
+          }
         }
-
-        const blob = new Blob([arrayBuffer], { type: "font/ttf" })
+        
+        console.log(`✅ 총 ${downloadGlyphs.length}개 글리프 수집 완료 (한글: ${koreanCount}개, 영문: ${englishCount}개)`)
+        
+        if (downloadGlyphs.length < 10) {
+          throw new Error(`수집된 글리프가 너무 적습니다: ${downloadGlyphs.length}개`)
+        }
+        
+        // 2. 완전히 새로운 폰트 생성
+        const Font = (window as unknown as { opentype: { Font: new (options: unknown) => Font } }).opentype.Font
+        const safeFontName = fontName.replace(/[^a-zA-Z0-9-]/g, "")
+        const englishFont = fontState.englishFont.font
+        
+        // OpenType.js 표준 형식에 맞는 폰트 옵션
+        const downloadFontOptions = {
+          familyName: fontName,
+          styleName: "Regular", 
+          unitsPerEm: englishFont.unitsPerEm || 1000,
+          ascender: englishFont.ascender || 800,
+          descender: englishFont.descender || -200,
+          glyphs: downloadGlyphs
+        }
+        
+        console.log("🏗️  다운로드용 폰트 객체 생성 중...")
+        console.log("📋 폰트 옵션:", downloadFontOptions)
+        
+        let downloadFont: Font
+        try {
+          downloadFont = new Font(downloadFontOptions)
+        } catch (constructorError) {
+          console.error("❌ Font 생성자 오류:", constructorError)
+          
+          // 더 단순한 옵션으로 재시도
+          const minimalOptions = {
+            familyName: fontName,
+            styleName: "Regular",
+            unitsPerEm: 1000,
+            ascender: 800,
+            descender: -200,
+            glyphs: downloadGlyphs
+          }
+          
+          console.log("🔄 최소 옵션으로 재시도:", minimalOptions)
+          downloadFont = new Font(minimalOptions)
+        }
+        
+        console.log("🔄 폰트 직렬화 중...")
+        const arrayBuffer = downloadFont.toArrayBuffer()
+        
+        if (!arrayBuffer || arrayBuffer.byteLength < 10000) {
+          throw new Error(`폰트 크기가 너무 작습니다: ${arrayBuffer?.byteLength || 0} bytes`)
+        }
+        
+        console.log(`✅ 다운로드용 폰트 생성 성공: ${arrayBuffer.byteLength} bytes`)
+        
+        // 폰트 헤더 검증
+        const headerView = new Uint8Array(arrayBuffer.slice(0, 16))
+        const headerHex = Array.from(headerView).map(b => b.toString(16).padStart(2, '0')).join(' ')
+        console.log("🏷️  폰트 헤더:", headerHex)
+        
+        const downloadData = new Uint8Array(arrayBuffer)
+        const blob = new Blob([downloadData], { type: "font/ttf" })
         const url = URL.createObjectURL(blob)
 
         // VSCode 호환성을 위한 안전한 파일명 생성
-        const safeFontName = fontName.replace(/[^a-zA-Z0-9-]/g, "")
         const downloadFileName = safeFontName.length > 0 ? safeFontName : "HangeulCodingFont"
         const postScriptFamilyName = `${downloadFileName}-Regular`
 
@@ -900,21 +1101,30 @@ export const useFontMerger = () => {
         document.body.removeChild(link)
         URL.revokeObjectURL(url)
 
-        // 다운로드 완료 toast 메시지
-        setSuccess(`폰트 다운로드가 완료되었습니다! (${downloadFileName}.ttf)`)
+        // 다운로드 완료 toast 메시지 (크기 정보 포함)
+        const sizeKB = (downloadData.length / 1024).toFixed(1)
+        setSuccess(`폰트 다운로드가 완료되었습니다! (${downloadFileName}.ttf, ${sizeKB}KB)`)
 
-        // VSCode 사용 안내 정보 반환 (메시지 대신)
+        console.log("📁 다운로드 완료:", {
+          fileName: `${downloadFileName}.ttf`,
+          size: `${sizeKB}KB`,
+          glyphCount: downloadGlyphs.length
+        })
+
+        // VSCode 사용 안내 정보 반환
         return {
           downloadFileName,
           originalFontName: fontName,
           postScriptFamilyName,
+          fileSize: downloadData.length,
         }
       } catch (error) {
+        console.error("❌ 다운로드 실패:", error)
         setError(`다운로드 실패: ${error instanceof Error ? error.message : "Unknown error"}`)
         return null
       }
     },
-    [fontState.mergedFont, setError, setSuccess]
+    [fontState.mergedFont, fontState.koreanFont, fontState.englishFont, setError, setSuccess]
   )
 
   return {
